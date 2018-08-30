@@ -1,0 +1,11 @@
+Handling shift changes/startup:
+    create option for manually setting number of parts completed (for instances where timer is started mid-shift)
+
+Functionality:
+    countdown
+    sequence time across breaks
+    handling rejects:
+        subtract from total demand?
+    handling changeovers:
+        set number of changeovers at beginning of day and subtract (?) seconds for each one from available time?
+            button for starting a changeover sequence?
