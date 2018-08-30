@@ -62,8 +62,10 @@ def cycle():
         Var.lead_unverified += 1
     else:
         Var.on_time += 1
-    app.setLabel('TCT', countdown_format(get_tct()))
-    app.setLabel('Seq', countdown_format(get_tct() * Var.partsper))
+    Var.tct = get_tct()
+    Var.sequence_time = Var.tct * Var.partsper
+    app.setLabel('TCT', countdown_format(Var.tct))
+    app.setLabel('Seq', countdown_format(Var.sequence_time))
     Var.batting_avg = Var.on_time / sum([Var.on_time, Var.late, Var.early])
     Var.andon = False
     Var.mark = datetime.datetime.now()
@@ -108,7 +110,7 @@ def label_update():
 def demand_set(btn):
     demand = int(app.getEntry('demand'))
     demand += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
-    demand = (0 if demand < 0 else demand)
+    demand = (1 if demand < 1 else demand)
     app.setEntry('demand', demand)
     recalculate()
 
@@ -116,7 +118,7 @@ def demand_set(btn):
 def partsper_set(btn):
     partsper = int(app.getEntry('partsper'))
     partsper += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
-    partsper = (0 if partsper < 0 else partsper)
+    partsper = (1 if partsper < 1 else partsper)
     app.setEntry('partsper', partsper)
     recalculate()
 
@@ -204,6 +206,15 @@ def enable_sched_select():
     app.enableButton('Go')
 
 
+def enable_parts_out():
+    if app.getCheckBox('Parts Out'):
+        app.enableSpinBox('Parts Delivered')
+        app.enableButton('Set')
+    else:
+        app.disableSpinBox('Parts Delivered')
+        app.disableButton('Set')
+
+
 def shift_guesser():
     return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
         else 'Day' if Var.now.hour >= 7 else 'Grave'
@@ -230,33 +241,33 @@ def read_time_file():
     sched = Var.sched
     for block in range(1, 9):
         try:
-            for label in ['block%sLabel' % block, 'block%s' % block,
-                          'block%sTotal' % block, 'block%sPercent' % block]:
+            for label in ['block%s' % block, 'block%sTotal' % block, 'block%sPercent' % block]:
                 app.removeLabel(label)
+            app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
             print('removing block %s labels' % block)
         except:
             print('block %s does not exist. Ignoring command to delete labels.' % block)
     app.openLabelFrame('Parameters')
-    start = datetime.datetime.time(sched.start).strftime('%I:%M%p')
-    end = datetime.datetime.time(sched.end).strftime('%I:%M%p')
-    percent = sum(sched.blockSeconds)/schedule.get_seconds(sched.start, sched.end)
+    start = datetime.datetime.time(sched.start).strftime('%H:%M')
+    end = datetime.datetime.time(sched.end).strftime('%H:%M')
+    # percent = sum(sched.blockSeconds)/schedule.get_seconds(sched.start, sched.end)
     app.setLabel('start-end', '%s - %s' % (start, end))
     app.setLabel('start-endTotal', str(sum(sched.blockSeconds)) + ' seconds')
-    app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
+    # app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
     for block in range(1, len(sched.available) + 1):
-        start = datetime.datetime.time(sched.available[block - 1])
-        end = datetime.datetime.time(sched.breaks[block - 1])
-        block_time = sched.blockSeconds[block-1]
-        percent = block_time/sum(sched.blockSeconds)
-        d = {'block%sLabel' % block:    ['%s Block: ' % GUIVar.ordinalList[block], 0, 0],
-             'block%s' % block:         ['%s - %s' % (start.strftime('%I:%M%p'), end.strftime('%I:%M%p')), 0, 1],
-             'block%sTotal' % block:    ['%s Seconds' % block_time, 1, 1],
-             'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 1, 0]}
-        x = 0
-        for label in d:
-            app.addLabel(label, d[label][0], block*3+d[label][1], d[label][2])
-            x += 1
-        for label in ['block%sTotal' % block, 'block%sPercent' % block]:
-            app.getLabelWidget(label).config(font=GUIConfig.smallFont)
+        with app.labelFrame('%s Block' % GUIVar.ordinalList[block], colspan=2):
+            app.setSticky('new')
+            app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
+            start = datetime.datetime.time(sched.available[block - 1])
+            end = datetime.datetime.time(sched.breaks[block - 1])
+            block_time = sched.blockSeconds[block-1]
+            # percent = block_time/sum(sched.blockSeconds)
+            d = {'block%s' % block:         ['%s - %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 0],
+                 'block%sTotal' % block:    ['%s Seconds' % block_time, 1, 0],
+                 # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
+                 }
+            for label in d:
+                app.addLabel(title=label, text=d[label][0], row=d[label][1], column=d[label][2])
+
     app.stopLabelFrame()
     Var.mark = datetime.datetime.now()

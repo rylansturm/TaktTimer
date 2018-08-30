@@ -71,8 +71,8 @@ with app.tabbedFrame('Tabs'):
 
     # Setup tab #
     with app.tab(GUIConfig.tabs[2]):
-        with app.labelFrame('Presets', row=0, column=0, rowspan=1):
-            app.setSticky('n')
+        with app.labelFrame('Presets', row=0, column=0):
+            app.setSticky('new')
             app.addLabelOptionBox('Area: ', ['Select'] + GUIVar.areas)
             app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
             app.addLabelOptionBox('Shift: ', GUIVar.shifts)
@@ -81,24 +81,33 @@ with app.tabbedFrame('Tabs'):
             for box in ['Shift: ', 'Schedule: ']:
                 app.disableOptionBox(box)
                 app.setOptionBoxChangeFunction(box, read_time_file)
-        with app.labelFrame('Variables', row=1, column=0, rowspan=1):
-            app.setSticky('new')
-            app.addLabelEntry('demand', row=0, column=0, rowspan=1, colspan=2)
+        with app.frame('buttons', row=1, column=0):
+            app.addButton('Go', press, row=3, column=0, colspan=2)
+            app.disableButton('Go')
+            app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
+            app.addLabel('taktLabel2', 'Takt', row=3, column=2)
+            app.addLabel('takt2', 0, row=4, column=2)
+        with app.labelFrame('Variables', row=0, column=1, rowspan=2):
+            app.setSticky('w')
+            app.addLabelEntry('demand', row=0, column=0, colspan=2)
             app.setEntry('demand', 0)
             app.setLabel('demand', 'Demand: ')
-            app.addLabelSpinBox('Parts Delivered', list(range(GUIConfig.max_parts_delivered, -1, -1)), row=1, column=0)
+            app.addCheckBox('Parts Out', row=3, column=0)
+            app.setCheckBoxChangeFunction('Parts Out', enable_parts_out)
+            app.addSpinBox('Parts Delivered', list(range(GUIConfig.max_parts_delivered, -1, -1)), row=3, column=1)
             app.setSpinBox('Parts Delivered', 0)
-            app.addButton('Set', press, row=1, column=1)
+            app.addButton('Set', press, row=3, column=2)
+            # app.disableLabel('Parts Delivered')
+            app.disableSpinBox('Parts Delivered')
+            app.disableButton('Set')
             with app.labelFrame('demandIncrementFrame', row=0, column=2, rowspan=2, hideTitle=True):
                 app.setSticky('ew')
                 inc = GUIVar.demandIncrements
                 for i in range(len(inc)):
-                    app.addLabel('+/- %sDemand' % int(inc[i]), row=0, column=i+1)
-                    app.setLabel('+/- %sDemand' % int(inc[i]), '+/- %s' % int(inc[i]))
-                    app.addButton('%02dUPDemand' % int(inc[i]), demand_set, row=1, column=i + 1)
-                    app.addButton('%02dDNDemand' % int(inc[i]), demand_set, row=2, column=i + 1)
-                    app.setButton('%02dUPDemand' % int(inc[i]), 'UP')
-                    app.setButton('%02dDNDemand' % int(inc[i]), 'DOWN')
+                    app.addButton('%02dUPDemand' % int(inc[i]), demand_set, row=0, column=i + 1)
+                    app.addButton('%02dDNDemand' % int(inc[i]), demand_set, row=1, column=i + 1)
+                    app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
+                    app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
             app.addLabelEntry('partsper', row=2, column=0, colspan=2)
             app.setEntry('partsper', 2)
             app.setLabel('partsper', 'Parts per cycle: ')
@@ -106,32 +115,26 @@ with app.tabbedFrame('Tabs'):
                 app.setSticky('new')
                 inc = GUIVar.partsperIncrements
                 for i in range(len(inc)):
-                    app.addLabel('+/- %sPartsper' % int(inc[i]), row=0, column=i + 1)
-                    app.setLabel('+/- %sPartsper' % int(inc[i]), '+/- %s' % int(inc[i]))
-                    app.addButton('%02dUPPartsper' % int(inc[i]), partsper_set, row=1, column=i + 1)
-                    app.addButton('%02dDNPartsper' % int(inc[i]), partsper_set, row=2, column=i + 1)
-                    app.setButton('%02dUPPartsper' % int(inc[i]), 'UP')
-                    app.setButton('%02dDNPartsper' % int(inc[i]), 'DOWN')
-            app.addButton('Go', press, row=3, column=0, colspan=2)
-            app.disableButton('Go')
-            app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
-            app.addLabel('taktLabel2', 'Takt', row=3, column=2)
-            app.addLabel('takt2', 0, row=4, column=2)
-        with app.labelFrame('Parameters', row=0, column=1, rowspan=3):
+                    app.addButton('%02dUPPartsper' % int(inc[i]), partsper_set, row=0, column=i + 1)
+                    app.addButton('%02dDNPartsper' % int(inc[i]), partsper_set, row=1, column=i + 1)
+                    app.setButton('%02dUPPartsper' % int(inc[i]), '+%s' % inc[i])
+                    app.setButton('%02dDNPartsper' % int(inc[i]), '-%s' % inc[i])
+        with app.labelFrame('Parameters', row=2, column=0, colspan=2):
             app.setSticky('new')
-            app.addLabel('start-endLabel', 'Start-End: ', 0, 0)
-            app.addLabel('start-end', 'time-time', 0, 1)
-            app.addLabel('start-endTotal', 'Total Seconds', 1, 1)
-            app.addLabel('start-endPercent', 'Percent', 1, 0)
-            for label in ['start-endTotal', 'start-endPercent']:
-                app.getLabelWidget(label).config(font=GUIConfig.smallFont)
+            with app.labelFrame('Shift', colspan=4):
+                app.setSticky('new')
+                app.setLabelFrameAnchor('Shift', 'n')
+                app.addLabel('start-end', 'time-time', 0, 0)
+                app.addLabel('start-endTotal', 'Total Seconds', 0, 1)
+                # app.addLabel('start-endPercent', 'Percent', 1, 0)
             for block in range(1, 5):
-                app.addLabel('block%sLabel' % block, '%s Block: ' % GUIVar.ordinalList[block], block * 2 + 0, 0)
-                app.addLabel('block%s' % block, 'time-time', block * 2, 1)
-                app.addLabel('block%sTotal' % block, 'Total Seconds', block * 2 + 1, 1)
-                app.addLabel('block%sPercent' % block, 'Percent', block * 2 + 1, 0)
-                for label in ['block%sTotal' % block, 'block%sPercent' % block]:
-                    app.getLabelWidget(label).config(font=GUIConfig.smallFont)
+                with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
+                    app.setSticky('new')
+                    app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
+                    app.addLabel('block%s' % block, 'time-time', 0, 0)
+                    app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
+                    # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
+
 
 for i in GUIConfig.tabs:
     app.setTabBg('Tabs', i, GUIConfig.appBgColor)

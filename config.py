@@ -3,7 +3,7 @@ basedir = "P:/Talladega Factory/Swing/Rylan Sturm/Company Takt Timer/Data"
 
 class GUIConfig(object):
     title               = 'Takt Timer'
-    windowSize          = None
+    windowSize          = '800x480'
     normalFont          = 16
     smallFont           = 'arial 12'
     mediumFont          = 'arial 24'
