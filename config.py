@@ -26,7 +26,7 @@ class GUIVar(object):
     shifts              = ['Grave', 'Day', 'Swing']
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',
                            'Richmond', 'Bristol', 'Sonoma', 'Texas',
-                           'Atlanta', 'Fontana']
+                           'Atlanta', 'Fontana', 'Monaco']
     scheduleTypes       = ['Regular', 'Pit Stop', 'Department Lunch']
     ordinalList         = ['', 'First', 'Second', 'Third', 'Fourth',
                            'Fifth', 'Sixth', 'Seventh', 'Eighth']

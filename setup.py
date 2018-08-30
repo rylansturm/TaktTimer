@@ -16,6 +16,6 @@ options = {
 
 setup(options=options,
       name="Takt Timer",
-      version="0.9",
+      version="0.901",
       description="",
       executables=[Executable("C:/Users/11012985/PycharmProjects/Timer/Timer.py")])
