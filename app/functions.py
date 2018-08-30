@@ -139,7 +139,7 @@ def time_elapsed():
     block = get_block_var()
     elapsed = (now - Var.sched.sched[0]).total_seconds()
     for i in range(int(len(Var.sched.sched)/2) - 1):
-        elapsed -= (Var.sched.breakSeconds[i] if Var.block > i + 1 else 0)
+        elapsed -= (Var.sched.breakSeconds[i] if block/2 >= i+1 else 0)
     if block % 2 == 0:
         elapsed -= (now - Var.sched.sched[block - 1]).total_seconds()
     return elapsed
@@ -241,7 +241,7 @@ def read_time_file():
     sched = Var.sched
     for block in range(1, 9):
         try:
-            for label in ['block%s' % block, 'block%sTotal' % block, 'block%sPercent' % block]:
+            for label in ['block%s' % block, 'block%sTotal' % block]:
                 app.removeLabel(label)
             app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
             print('removing block %s labels' % block)
@@ -255,7 +255,7 @@ def read_time_file():
     app.setLabel('start-endTotal', str(sum(sched.blockSeconds)) + ' seconds')
     # app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
     for block in range(1, len(sched.available) + 1):
-        with app.labelFrame('%s Block' % GUIVar.ordinalList[block], colspan=2):
+        with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
             app.setSticky('new')
             app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
             start = datetime.datetime.time(sched.available[block - 1])
