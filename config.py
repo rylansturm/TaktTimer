@@ -1,10 +1,13 @@
-basedir = "P:/Talladega Factory/Swing/Rylan Sturm/Company Takt Timer/Data"
 import datetime
+import os
 
+basedir = "P:/Talladega Factory/Swing/Rylan Sturm/Company Takt Timer/Data"
 
 class GUIConfig(object):
+    platform            = os.sys.platform
     title               = 'Takt Timer'
-    windowSize          = '800x480'
+    windowSize          = {'linux': 'fullscreen',
+                           'win32': '800x480'}
     normalFont          = 16
     smallFont           = 'arial 12'
     mediumFont          = 'arial 24'
