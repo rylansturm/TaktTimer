@@ -4,9 +4,8 @@
     <bookmark url="file://$PROJECT_DIR$/app/functions.py" line="53" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4b605bff-7a1c-4826-9d27-2cee7ccf7582" name="Default Changelist" comment="deleted unnecessary build folder from local directory">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/functions.py" afterDir="false" />
+    <list default="true" id="4b605bff-7a1c-4826-9d27-2cee7ccf7582" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/app/layout.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,7 +38,7 @@
         <counts>
           <entry key="ini" value="3" />
           <entry key="md" value="1" />
-          <entry key="py" value="39" />
+          <entry key="py" value="40" />
           <entry key="toc" value="2" />
           <entry key="txt" value="3" />
         </counts>
@@ -48,42 +47,42 @@
         <counts>
           <entry key="Markdown" value="1" />
           <entry key="PLAIN_TEXT" value="8" />
-          <entry key="Python" value="38" />
+          <entry key="Python" value="39" />
           <entry key="Scratch" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="Python Console" value="3606" />
+          <entry key="Python Console" value="3671" />
           <entry key="dummy" value="50" />
           <entry key="ini" value="8" />
-          <entry key="py" value="33686" />
-          <entry key="txt" value="882" />
+          <entry key="py" value="33954" />
+          <entry key="txt" value="995" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="940" />
-          <entry key="Python" value="37292" />
+          <entry key="PLAIN_TEXT" value="1053" />
+          <entry key="Python" value="37625" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/layout.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="17" column="32" lean-forward="true" selection-start-line="17" selection-start-column="32" selection-end-line="17" selection-end-column="32" />
+            <state relative-caret-position="238">
+              <caret line="79" column="19" selection-start-line="79" selection-start-column="19" selection-end-line="79" selection-end-column="19" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
+            <state relative-caret-position="3825">
               <caret line="225" column="45" lean-forward="true" selection-start-line="225" selection-start-column="45" selection-end-line="225" selection-end-column="45" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
@@ -98,8 +97,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
+            <state relative-caret-position="238">
+              <caret line="14" column="36" lean-forward="true" selection-start-line="14" selection-start-column="36" selection-end-line="14" selection-end-column="36" />
+              <folding>
+                <element signature="e#75#90#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -111,6 +113,18 @@
               <caret line="51" column="43" selection-start-line="51" selection-start-column="43" selection-end-line="51" selection-end-column="43" />
               <folding>
                 <marker date="1535736870417" expanded="true" signature="1564:1830" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="7" column="38" lean-forward="true" selection-start-line="7" selection-start-column="38" selection-end-line="7" selection-end-column="38" />
+              <folding>
+                <element signature="e#0#22#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -148,7 +162,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/app/__init__.py" />
         <option value="$PROJECT_DIR$/Timer.py" />
         <option value="$PROJECT_DIR$/app/TODO.txt" />
         <option value="$PROJECT_DIR$/app/setup.py" />
@@ -156,10 +169,11 @@
         <option value="$PROJECT_DIR$/schedules/Swing.ini" />
         <option value="$PROJECT_DIR$/schedules/Grave.ini" />
         <option value="$PROJECT_DIR$/setup.py" />
-        <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/app/schedule.py" />
-        <option value="$PROJECT_DIR$/app/layout.py" />
         <option value="$PROJECT_DIR$/app/functions.py" />
+        <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/app/__init__.py" />
+        <option value="$PROJECT_DIR$/app/layout.py" />
       </list>
     </option>
   </component>
@@ -347,7 +361,21 @@
       <option name="project" value="LOCAL" />
       <updated>1535737922302</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="took away seconds from time format when hours are present">
+      <created>1535746387254</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1535746387254</updated>
+    </task>
+    <task id="LOCAL-00007" summary="made app not stay on top, fullscreen on raspi">
+      <created>1535748816162</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1535748816163</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView">
@@ -361,17 +389,18 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-114" y="-908" width="1616" height="876" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="1" sideWeight="0.4989154" visible="true" weight="0.1539924" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.4989154" visible="true" weight="0.1539924" />
       <window_info id="Structure" order="2" sideWeight="0.5010846" side_tool="true" weight="0.1264489" />
-      <window_info anchor="bottom" id="Terminal" order="0" visible="true" weight="0.3207547" />
+      <window_info anchor="bottom" id="Terminal" order="0" weight="0.3207547" />
       <window_info anchor="bottom" id="Event Log" order="1" sideWeight="0.5006337" side_tool="true" weight="0.17789757" />
-      <window_info anchor="bottom" id="Python Console" order="2" weight="0.32884097" />
+      <window_info anchor="bottom" id="Python Console" order="2" weight="0.8530997" />
       <window_info anchor="bottom" id="Message" order="3" />
       <window_info anchor="bottom" id="Version Control" order="4" weight="0.32884097" />
       <window_info anchor="bottom" id="Find" order="5" weight="0.3286334" />
-      <window_info anchor="bottom" id="Run" order="6" sideWeight="0.49936628" weight="0.17789757" />
+      <window_info active="true" anchor="bottom" id="Run" order="6" sideWeight="0.49936628" visible="true" weight="0.17789757" />
       <window_info anchor="bottom" id="Debug" order="7" weight="0.3991323" />
       <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
@@ -416,7 +445,9 @@
     <MESSAGE value="added Monaco" />
     <MESSAGE value="added ability to change times locally for current runtime" />
     <MESSAGE value="deleted unnecessary build folder from local directory" />
-    <option name="LAST_COMMIT_MESSAGE" value="deleted unnecessary build folder from local directory" />
+    <MESSAGE value="took away seconds from time format when hours are present" />
+    <MESSAGE value="made app not stay on top, fullscreen on raspi" />
+    <option name="LAST_COMMIT_MESSAGE" value="made app not stay on top, fullscreen on raspi" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.py" />
@@ -470,17 +501,33 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/__init__.py">
+    <entry file="file://$PROJECT_DIR$/Timer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="5" column="38" selection-start-line="5" selection-start-column="38" selection-end-line="5" selection-end-column="38" />
+        <state relative-caret-position="102">
+          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3825">
+          <caret line="225" column="45" lean-forward="true" selection-start-line="225" selection-start-column="45" selection-end-line="225" selection-end-column="45" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+            <marker date="1535746268463" expanded="true" signature="677:678" ph="..." />
+            <marker date="1535746268463" expanded="true" signature="6857:7063" ph="..." />
+            <marker date="1535746268463" expanded="true" signature="7603:8363" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="19" column="55" selection-start-line="19" selection-start-column="55" selection-end-line="19" selection-end-column="55" />
+        <state relative-caret-position="238">
+          <caret line="14" column="36" lean-forward="true" selection-start-line="14" selection-start-column="36" selection-end-line="14" selection-end-column="36" />
+          <folding>
+            <element signature="e#75#90#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -494,30 +541,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Timer.py">
+    <entry file="file://$PROJECT_DIR$/app/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
+        <state relative-caret-position="119">
+          <caret line="7" column="38" lean-forward="true" selection-start-line="7" selection-start-column="38" selection-end-line="7" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/layout.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="32" lean-forward="true" selection-start-line="17" selection-start-column="32" selection-end-line="17" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="225" column="45" lean-forward="true" selection-start-line="225" selection-start-column="45" selection-end-line="225" selection-end-column="45" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-            <marker date="1535746268463" expanded="true" signature="677:678" ph="..." />
-            <marker date="1535746268463" expanded="true" signature="6857:7063" ph="..." />
-            <marker date="1535746268463" expanded="true" signature="7603:8363" ph="..." />
-          </folding>
+        <state relative-caret-position="238">
+          <caret line="79" column="19" selection-start-line="79" selection-start-column="19" selection-end-line="79" selection-end-column="19" />
         </state>
       </provider>
     </entry>

@@ -235,7 +235,7 @@ def shift_adjust(btn):
     direction = btn[5:7]
     increment = GUIConfig.schedule_increment
     change_list[block_index] += increment if direction == 'UP' else -increment
-    app.setLabel('block%s' % str(block_index+1), '%s - %s' % (Var.sched.available[block_index].strftime('%H:%M'),
+    app.setLabel('block%s' % str(block_index+1), '%s -\n %s' % (Var.sched.available[block_index].strftime('%H:%M'),
                                                               Var.sched.breaks[block_index].strftime('%H:%M')))
     Var.sched.get_sched()
     Var.sched.get_block_seconds()
@@ -285,7 +285,7 @@ def read_time_file():
                        'endedUP%s' % block: [shift_adjust, 0, 2],
                        'endedDN%s' % block: [shift_adjust, 1, 2],
                        }
-            d = {'block%s' % block:         ['%s - %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
+            d = {'block%s' % block:         ['%s -\n %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
                  'block%sTotal' % block:    ['%s Seconds' % block_time, 2, 1, 0],
                  # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
                  }

@@ -73,11 +73,11 @@ with app.tabbedFrame('Tabs'):
     with app.tab(GUIConfig.tabs[2]):
         with app.labelFrame('Presets', row=0, column=0):
             app.setSticky('new')
-            app.addLabelOptionBox('Area: ', ['Select'] + GUIVar.areas)
+            app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
             app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
-            app.addLabelOptionBox('Shift: ', GUIVar.shifts)
+            app.addOptionBox('Shift: ', GUIVar.shifts)
             app.setOptionBox('Shift: ', 'Day')
-            app.addLabelOptionBox('Schedule: ', GUIVar.scheduleTypes)
+            app.addOptionBox('Schedule: ', GUIVar.scheduleTypes)
             for box in ['Shift: ', 'Schedule: ']:
                 app.disableOptionBox(box)
                 app.setOptionBoxChangeFunction(box, read_time_file)
