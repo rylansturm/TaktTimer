@@ -223,7 +223,7 @@ def shift_guesser():
 def countdown_format(seconds: int):
     hours, minutes = divmod(seconds, 3600)
     minutes, seconds = divmod(minutes, 60)
-    hour_label = '%s:%02d:%02d' % (hours, minutes, seconds)
+    hour_label = '%s:%02d' % (hours, minutes)
     minute_label = '%s:%02d' % (minutes, seconds)
     second_label = ':%02d' % seconds
     return Var.tCycle if hours < 0 else hour_label if hours else minute_label if minutes else second_label
