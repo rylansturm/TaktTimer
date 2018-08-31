@@ -153,12 +153,15 @@ def parts_ahead():
 
 def press(btn):
     if btn == 'Go':
-        for tab in GUIConfig.tabs:
-            app.setTabbedFrameDisabledTab('Tabs', tab, disabled=False)
-        app.setTabbedFrameSelectedTab('Tabs', 'Main')
-        Var.mark = datetime.datetime.now()
-        Var.started = True
-        recalculate()
+        if int(app.getEntry('demand')) == 0:
+            app.warningBox('No Demand', 'No demand was entered.')
+        else:
+            for tab in GUIConfig.tabs:
+                app.setTabbedFrameDisabledTab('Tabs', tab, disabled=False)
+            app.setTabbedFrameSelectedTab('Tabs', 'Main')
+            Var.mark = datetime.datetime.now()
+            Var.started = True
+            recalculate()
     if btn == 'leadUnverifiedButton':
         Var.lead_unverified = 0
         app.setLabel('leadUnverified', Var.lead_unverified)
@@ -236,7 +239,7 @@ def shift_adjust(btn):
     increment = GUIConfig.schedule_increment
     change_list[block_index] += increment if direction == 'UP' else -increment
     app.setLabel('block%s' % str(block_index+1), '%s -\n %s' % (Var.sched.available[block_index].strftime('%H:%M'),
-                                                              Var.sched.breaks[block_index].strftime('%H:%M')))
+                                                                Var.sched.breaks[block_index].strftime('%H:%M')))
     Var.sched.get_sched()
     Var.sched.get_block_seconds()
     Var.sched.get_break_seconds()
@@ -280,10 +283,10 @@ def read_time_file():
             end = datetime.datetime.time(sched.breaks[block-1])
             block_time = sched.blockSeconds[block-1]
             # percent = block_time/sum(sched.blockSeconds)
-            buttons = {'startUP%s' % block: [shift_adjust, 0, 0],
-                       'startDN%s' % block: [shift_adjust, 1, 0],
-                       'endedUP%s' % block: [shift_adjust, 0, 2],
-                       'endedDN%s' % block: [shift_adjust, 1, 2],
+            buttons = {'startUP%s' % block: [shift_adjust, 0, 2],
+                       'startDN%s' % block: [shift_adjust, 0, 0],
+                       'endedUP%s' % block: [shift_adjust, 1, 2],
+                       'endedDN%s' % block: [shift_adjust, 1, 0],
                        }
             d = {'block%s' % block:         ['%s -\n %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
                  'block%sTotal' % block:    ['%s Seconds' % block_time, 2, 1, 0],

@@ -89,7 +89,7 @@ with app.tabbedFrame('Tabs'):
             app.addLabel('takt2', 0, row=4, column=2)
         with app.labelFrame('Variables', row=0, column=1, rowspan=2):
             app.setSticky('w')
-            app.addLabelEntry('demand', row=0, column=0, colspan=2)
+            app.addLabelNumericEntry('demand', row=0, column=0, colspan=2)
             app.setEntry('demand', 0)
             app.setLabel('demand', 'Demand: ')
             app.addCheckBox('Parts Out', row=3, column=0)
@@ -109,7 +109,7 @@ with app.tabbedFrame('Tabs'):
                     app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
             app.addLabelEntry('partsper', row=2, column=0, colspan=2)
-            app.setEntry('partsper', 2)
+            app.setEntry('partsper', 1)
             app.setLabel('partsper', 'Parts \nper cycle: ')
             with app.labelFrame('partsperIncrementFrame', row=2, column=2, hideTitle=True):
                 app.setSticky('new')

@@ -6,7 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="4b605bff-7a1c-4826-9d27-2cee7ccf7582" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/schedules/Swing.ini" beforeDir="false" afterPath="$PROJECT_DIR$/app/schedules/Swing.ini" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,7 +39,7 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="ini" value="3" />
+          <entry key="ini" value="4" />
           <entry key="md" value="1" />
           <entry key="py" value="40" />
           <entry key="toc" value="2" />
@@ -47,7 +49,7 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Markdown" value="1" />
-          <entry key="PLAIN_TEXT" value="8" />
+          <entry key="PLAIN_TEXT" value="9" />
           <entry key="Python" value="39" />
           <entry key="Scratch" value="1" />
         </counts>
@@ -56,26 +58,26 @@
         <counts>
           <entry key="Python Console" value="3671" />
           <entry key="dummy" value="50" />
-          <entry key="ini" value="8" />
-          <entry key="py" value="33968" />
-          <entry key="txt" value="1016" />
+          <entry key="ini" value="18" />
+          <entry key="py" value="34130" />
+          <entry key="txt" value="1032" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="1074" />
-          <entry key="Python" value="37639" />
+          <entry key="PLAIN_TEXT" value="1100" />
+          <entry key="Python" value="37801" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/layout.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="391">
-              <caret line="112" column="46" selection-start-line="112" selection-start-column="46" selection-end-line="112" selection-end-column="46" />
+            <state relative-caret-position="170">
+              <caret line="96" column="24" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -83,22 +85,22 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="205">
-              <caret line="237" column="79" selection-start-line="237" selection-start-column="79" selection-end-line="237" selection-end-column="79" />
+            <state relative-caret-position="170">
+              <caret line="157" column="12" lean-forward="true" selection-start-line="157" selection-start-column="12" selection-end-line="157" selection-end-column="12" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
-                <marker date="1535749076161" expanded="true" signature="677:678" ph="..." />
-                <marker date="1535749076161" expanded="true" signature="6857:7063" ph="..." />
-                <marker date="1535749076161" expanded="true" signature="7603:8365" ph="..." />
+                <marker date="1535750489100" expanded="true" signature="677:678" ph="..." />
+                <marker date="1535750489100" expanded="true" signature="7006:7212" ph="..." />
+                <marker date="1535750489100" expanded="true" signature="7752:8516" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
+            <state relative-caret-position="306">
               <caret line="27" column="32" selection-start-line="27" selection-start-column="32" selection-end-line="27" selection-end-column="32" />
               <folding>
                 <element signature="e#75#90#0" expanded="true" />
@@ -171,10 +173,11 @@
         <option value="$PROJECT_DIR$/schedules/Grave.ini" />
         <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/app/schedule.py" />
-        <option value="$PROJECT_DIR$/app/functions.py" />
         <option value="$PROJECT_DIR$/app/__init__.py" />
-        <option value="$PROJECT_DIR$/app/layout.py" />
         <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/app/functions.py" />
+        <option value="$PROJECT_DIR$/app/layout.py" />
+        <option value="$PROJECT_DIR$/app/schedules/Swing.ini" />
       </list>
     </option>
   </component>
@@ -390,7 +393,14 @@
       <option name="project" value="LOCAL" />
       <updated>1535749303345</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="made app not stay on top, fullscreen on raspi, restructured layout for real estate">
+      <created>1535749645753</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1535749645753</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TodoView">
@@ -404,10 +414,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-114" y="-908" width="1616" height="876" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.4989154" weight="0.1539924" />
+      <window_info active="true" content_ui="combo" id="Project" order="1" sideWeight="0.4989154" visible="true" weight="0.1539924" />
       <window_info id="Structure" order="2" sideWeight="0.5010846" side_tool="true" weight="0.1264489" />
       <window_info anchor="bottom" id="Terminal" order="0" weight="0.3207547" />
       <window_info anchor="bottom" id="Event Log" order="1" sideWeight="0.5006337" side_tool="true" weight="0.17789757" />
@@ -415,7 +424,7 @@
       <window_info anchor="bottom" id="Message" order="3" />
       <window_info anchor="bottom" id="Version Control" order="4" weight="0.32884097" />
       <window_info anchor="bottom" id="Find" order="5" weight="0.3286334" />
-      <window_info active="true" anchor="bottom" id="Run" order="6" sideWeight="0.49936628" visible="true" weight="0.17789757" />
+      <window_info anchor="bottom" id="Run" order="6" sideWeight="0.49936628" visible="true" weight="0.17789757" />
       <window_info anchor="bottom" id="Debug" order="7" weight="0.3991323" />
       <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
@@ -482,7 +491,8 @@
     <MESSAGE value="took away seconds from time format when hours are present" />
     <MESSAGE value="made app not stay on top, fullscreen on raspi" />
     <MESSAGE value="made app not stay on top, fullscreen on raspi, restructured layout" />
-    <option name="LAST_COMMIT_MESSAGE" value="made app not stay on top, fullscreen on raspi, restructured layout" />
+    <MESSAGE value="made app not stay on top, fullscreen on raspi, restructured layout for real estate" />
+    <option name="LAST_COMMIT_MESSAGE" value="made app not stay on top, fullscreen on raspi, restructured layout for real estate" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.py" />
@@ -492,13 +502,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
           <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/schedules/Swing.ini">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="9" selection-start-line="13" selection-start-column="9" selection-end-line="13" selection-end-column="9" />
         </state>
       </provider>
     </entry>
@@ -553,19 +556,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="205">
-          <caret line="237" column="79" selection-start-line="237" selection-start-column="79" selection-end-line="237" selection-end-column="79" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-            <marker date="1535749076161" expanded="true" signature="677:678" ph="..." />
-            <marker date="1535749076161" expanded="true" signature="6857:7063" ph="..." />
-            <marker date="1535749076161" expanded="true" signature="7603:8365" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
@@ -576,20 +566,40 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/layout.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="112" column="46" selection-start-line="112" selection-start-column="46" selection-end-line="112" selection-end-column="46" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
+        <state relative-caret-position="306">
           <caret line="27" column="32" selection-start-line="27" selection-start-column="32" selection-end-line="27" selection-end-column="32" />
           <folding>
             <element signature="e#75#90#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="157" column="12" lean-forward="true" selection-start-line="157" selection-start-column="12" selection-end-line="157" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+            <marker date="1535750489100" expanded="true" signature="677:678" ph="..." />
+            <marker date="1535750489100" expanded="true" signature="7006:7212" ph="..." />
+            <marker date="1535750489100" expanded="true" signature="7752:8516" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/schedules/Swing.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="12" column="9" selection-start-line="12" selection-start-column="9" selection-end-line="12" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/layout.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="96" column="24" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="24" />
         </state>
       </provider>
     </entry>
