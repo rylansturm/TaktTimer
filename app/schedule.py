@@ -41,3 +41,22 @@ class Schedule:
         self.breakSeconds = []
         for i in range(int(len(self.sched)/2 - 1)):
             self.breakSeconds.append(get_seconds(self.sched[i * 2 + 1], self.sched[i * 2 + 2]))
+
+    def get_sched(self):
+        self.sched = []
+        for i in range(len(self.available)):
+            self.sched.append(self.available[i])
+            try:
+                self.sched.append(self.breaks[i])
+            except IndexError:
+                self.sched.append(self.end)
+
+    def get_block_seconds(self):
+        self.blockSeconds = []
+        for i in range(int(len(self.sched)/2)):
+            self.blockSeconds.append(get_seconds(self.sched[i * 2], self.sched[i * 2 + 1]))
+
+    def get_break_seconds(self):
+        self.breakSeconds = []
+        for i in range(int(len(self.sched)/2 - 1)):
+            self.breakSeconds.append(get_seconds(self.sched[i * 2 + 1], self.sched[i * 2 + 2]))

@@ -121,9 +121,7 @@ with app.tabbedFrame('Tabs'):
                     app.setButton('%02dDNPartsper' % int(inc[i]), '-%s' % inc[i])
         with app.labelFrame('Parameters', row=2, column=0, colspan=2):
             app.setSticky('new')
-            with app.labelFrame('Shift', colspan=4):
-                app.setSticky('new')
-                app.setLabelFrameAnchor('Shift', 'n')
+            with app.frame('Shift', colspan=4):
                 app.addLabel('start-end', 'time-time', 0, 0)
                 app.addLabel('start-endTotal', 'Total Seconds', 0, 1)
                 # app.addLabel('start-endPercent', 'Percent', 1, 0)

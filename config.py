@@ -1,4 +1,5 @@
 basedir = "P:/Talladega Factory/Swing/Rylan Sturm/Company Takt Timer/Data"
+import datetime
 
 
 class GUIConfig(object):
@@ -16,6 +17,7 @@ class GUIConfig(object):
     timeMeterFill       = 'purple'
     tabs                = ['Main', 'Data', 'Setup']
     max_parts_delivered = 500
+    schedule_increment  = datetime.timedelta(minutes=5)
 
 
 class GUIVar(object):

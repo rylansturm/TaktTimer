@@ -229,6 +229,21 @@ def countdown_format(seconds: int):
     return Var.tCycle if hours < 0 else hour_label if hours else minute_label if minutes else second_label
 
 
+def shift_adjust(btn):
+    block_index = int(btn[7:])-1
+    change_list = Var.sched.available if btn[:5] == 'start' else Var.sched.breaks
+    direction = btn[5:7]
+    increment = GUIConfig.schedule_increment
+    change_list[block_index] += increment if direction == 'UP' else -increment
+    app.setLabel('block%s' % str(block_index+1), '%s - %s' % (Var.sched.available[block_index].strftime('%H:%M'),
+                                                              Var.sched.breaks[block_index].strftime('%H:%M')))
+    Var.sched.get_sched()
+    Var.sched.get_block_seconds()
+    Var.sched.get_break_seconds()
+    app.setLabel('block%sTotal' % str(block_index+1), Var.sched.blockSeconds[block_index])
+    app.setLabel('start-endTotal', str(sum(Var.sched.blockSeconds)) + ' seconds')
+
+
 def read_time_file():
     file = basedir + '/%s/Schedules/%s/%s.ini' % (app.getOptionBox('Area: '),
                                                   app.getOptionBox('Shift: '),
@@ -243,6 +258,9 @@ def read_time_file():
         try:
             for label in ['block%s' % block, 'block%sTotal' % block]:
                 app.removeLabel(label)
+            for button in ['startUP%s' % block, 'startDN%s' % block,
+                           'endedUP%s' % block, 'endedDN%s' % block]:
+                app.removeButton(button)
             app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
             print('removing block %s labels' % block)
         except:
@@ -258,16 +276,25 @@ def read_time_file():
         with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
             app.setSticky('new')
             app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
-            start = datetime.datetime.time(sched.available[block - 1])
-            end = datetime.datetime.time(sched.breaks[block - 1])
+            start = datetime.datetime.time(sched.available[block-1])
+            end = datetime.datetime.time(sched.breaks[block-1])
             block_time = sched.blockSeconds[block-1]
             # percent = block_time/sum(sched.blockSeconds)
-            d = {'block%s' % block:         ['%s - %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 0],
-                 'block%sTotal' % block:    ['%s Seconds' % block_time, 1, 0],
+            buttons = {'startUP%s' % block: [shift_adjust, 0, 0],
+                       'startDN%s' % block: [shift_adjust, 1, 0],
+                       'endedUP%s' % block: [shift_adjust, 0, 2],
+                       'endedDN%s' % block: [shift_adjust, 1, 2],
+                       }
+            d = {'block%s' % block:         ['%s - %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
+                 'block%sTotal' % block:    ['%s Seconds' % block_time, 2, 1, 0],
                  # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
                  }
             for label in d:
-                app.addLabel(title=label, text=d[label][0], row=d[label][1], column=d[label][2])
+                app.addLabel(title=label, text=d[label][0], row=d[label][1], column=d[label][2], rowspan=d[label][3])
+            for button in buttons:
+                app.addButton(title=button, func=buttons[button][0],
+                              row=buttons[button][1], column=buttons[button][2])
+                app.setButton(button, '+' if button[5:7] == 'UP' else '-')
 
     app.stopLabelFrame()
     Var.mark = datetime.datetime.now()
