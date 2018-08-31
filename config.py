@@ -24,8 +24,8 @@ class GUIConfig(object):
 
 
 class GUIVar(object):
-    demandIncrements    = ['24', '12', '1']
-    partsperIncrements  = ['24', '12', '1']
+    demandIncrements    = ['24', '1']
+    partsperIncrements  = ['24', '1']
     fileMenuList        = ['Go Fullscreen', 'Exit Fullscreen', '-', 'Exit']
     keys                = ['1', '<space>']
     shifts              = ['Grave', 'Day', 'Swing']
