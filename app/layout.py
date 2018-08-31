@@ -110,7 +110,7 @@ with app.tabbedFrame('Tabs'):
                     app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
             app.addLabelEntry('partsper', row=2, column=0, colspan=2)
             app.setEntry('partsper', 2)
-            app.setLabel('partsper', 'Parts per cycle: ')
+            app.setLabel('partsper', 'Parts \nper cycle: ')
             with app.labelFrame('partsperIncrementFrame', row=2, column=2, hideTitle=True):
                 app.setSticky('new')
                 inc = GUIVar.partsperIncrements
