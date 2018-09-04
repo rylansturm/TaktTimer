@@ -243,7 +243,7 @@ def shift_adjust(btn):
     Var.sched.get_sched()
     Var.sched.get_block_seconds()
     Var.sched.get_break_seconds()
-    app.setLabel('block%sTotal' % str(block_index+1), Var.sched.blockSeconds[block_index])
+    app.setLabel('block%sTotal' % str(block_index+1), str(Var.sched.blockSeconds[block_index]) + ' Seconds')
     app.setLabel('start-endTotal', str(sum(Var.sched.blockSeconds)) + ' seconds')
 
 
