@@ -1,4 +1,4 @@
-from app import app, schedule
+from app import app, timedata
 from config import GUIVar, GUIConfig, basedir
 import datetime
 from math import floor
@@ -9,7 +9,7 @@ class Var:
     now = datetime.datetime.now()
     mark = datetime.datetime.now()
     block = 0
-    sched = schedule.Schedule("%s/schedules/%s.ini" % (os.path.dirname(__file__), 'Day'))
+    sched = timedata.TimeData("%s/schedules/%s.ini" % (os.path.dirname(__file__), 'Day'))
     started = False
     available_time = 23100
     demand = 360
@@ -189,14 +189,14 @@ def recalculate():
 def key_press(key):
     if key == '1' or key == '<space>':
         cycle()
+    if key == '<F11>':
+        app.exitFullscreen() if app.getFullscreen() else app.setFullscreen()
 
 
 def menu_press(btn):
     """ handles all options under the File menu """
-    if btn == 'Go Fullscreen':
-        app.setSize('fullscreen')
-    if btn == 'Exit Fullscreen':
-        app.exitFullscreen()
+    if btn == 'Fullscreen':
+        key_press('<F11>')
     if btn == 'Exit':
         app.stop()
 
@@ -252,10 +252,10 @@ def read_time_file():
                                                   app.getOptionBox('Shift: '),
                                                   app.getOptionBox('Schedule: '))
     try:
-        Var.sched = schedule.Schedule(file)
+        Var.sched = timedata.TimeData(file)
     except KeyError:
         file = "%s/schedules/%s.ini" % (os.path.dirname(__file__), app.getOptionBox('Shift: '))
-        Var.sched = schedule.Schedule(file)
+        Var.sched = timedata.TimeData(file)
     sched = Var.sched
     for block in range(1, 9):
         try:

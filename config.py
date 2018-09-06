@@ -26,8 +26,8 @@ class GUIConfig(object):
 class GUIVar(object):
     demandIncrements    = ['24', '1']
     partsperIncrements  = ['24', '1']
-    fileMenuList        = ['Go Fullscreen', 'Exit Fullscreen', '-', 'Exit']
-    keys                = ['1', '<space>']
+    fileMenuList        = ['Fullscreen', '-', 'Exit']
+    keys                = ['1', '<space>', '<F11>']
     shifts              = ['Grave', 'Day', 'Swing']
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',
                            'Richmond', 'Bristol', 'Sonoma', 'Texas',

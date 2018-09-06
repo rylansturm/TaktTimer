@@ -16,7 +16,7 @@ def get_seconds(time1, time2):
     return var
 
 
-class Schedule:
+class TimeData:
     def __init__(self, file):
         c = configparser.ConfigParser()
         c.read(file)

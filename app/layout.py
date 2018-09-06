@@ -1,7 +1,4 @@
-from app import app
-from config import GUIConfig, GUIVar
 from app.functions import *
-
 
 app.registerEvent(counting)
 
