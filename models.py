@@ -1,7 +1,8 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Time, Date, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
+import datetime
 
 Base = declarative_base()
 
@@ -11,6 +12,7 @@ class Schedule(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False)
     shift = Column(String(16), nullable=False)
+    available_time = Column(Integer)
     start1 = Column(Time, nullable=False)
     end1 = Column(Time, nullable=False)
     start2 = Column(Time, nullable=True)
@@ -28,6 +30,27 @@ class Schedule(Base):
     start8 = Column(Time, nullable=True)
     end8 = Column(Time, nullable=True)
 
+    def get_available_time(self):
+        def get_seconds(time1, time2):
+            def convert(time):
+                var = datetime.datetime.combine(datetime.date.today(), time)
+                return var
+            seconds = int((convert(time2) - convert(time1)).total_seconds())
+            seconds += (86400 if seconds < 0 else 0)
+            return seconds
+        block_times = []
+        for i in [(self.start1, self.end1),
+                  (self.start2, self.end2),
+                  (self.start3, self.end3),
+                  (self.start4, self.end4),
+                  (self.start5, self.end5),
+                  (self.start6, self.end6),
+                  (self.start7, self.end7),
+                  (self.start8, self.end8)]:
+            if i[0]:
+                block_times.append(get_seconds(i[0], i[1]))
+        self.available_time = sum(block_times)
+
     def __repr__(self):
         return "<Schedule Object '%s' for %s shift>" % (self.name, self.shift)
 
@@ -37,9 +60,10 @@ class KPI(Base):
     id = Column(Integer, primary_key=True)
     d = Column(Date, index=True,nullable=False)
     shift = Column(String(16), index=True, nullable=False)
-    schedule_id = Column(Integer, ForeignKey('schedule.id'))
     demand = Column(Integer)
     delivered = Column(Integer)
+    schedule_id = Column(Integer, ForeignKey('schedule.id'))
+    schedule = relationship(Schedule)
 
     def __repr__(self):
         return "<KPI for %s shift on %s>" % (self.shift, self.d)
@@ -51,12 +75,22 @@ class Cycles(Base):
     d = Column(DateTime, index=True)
     seq = Column(Integer, index=True)
     cycle_time = Column(Integer)
+    kpi_id = Column(Integer, ForeignKey('kpi.id'))
+    kpi = relationship(KPI)
 
     def __repr__(self):
         return "<Cycle Object %s for seq %s>" % (self.cycle_time, self.seq)
 
 
 def create_db(file):
-    engine = create_engine('sqlite:///%s.db' % file)
+    engine = create_engine('sqlite:///%s' % file)
     Base.metadata.create_all(engine)
 
+
+def create_session(file):
+    """ returns a db session for the given database file """
+    engine = create_engine('sqlite:///%s.db' % file)
+    Base.metadata.bind = engine
+    DBSession = sessionmaker(bind=engine)
+    session = DBSession()
+    return session
