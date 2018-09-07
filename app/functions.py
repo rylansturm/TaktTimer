@@ -77,8 +77,8 @@ def display_cycle_times():
     cycle_list = []
     for i in Var.times_list:
         cycle_list.append(str(i))
-    message = ', '.join(cycle_list)
-    app.setMessage('cycleTimes', message)
+    data = ', '.join(cycle_list)
+    app.setMessage('cycleTimes', data)
 
 
 def get_tct():

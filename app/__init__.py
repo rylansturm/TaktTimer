@@ -1,5 +1,5 @@
 import sys, os
-sys.path.append('venv/Lib/site-packages')
+sys.path.insert(0, 'venv/Lib/site-packages')
 from appJar import gui
 from config import GUIConfig, GUIVar
 

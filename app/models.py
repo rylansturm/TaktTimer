@@ -49,3 +49,14 @@ class Cycles(Base):
     __tablename__ = 'cycles'
     id = Column(Integer, primary_key=True)
     d = Column(DateTime, index=True)
+    seq = Column(Integer, index=True)
+    cycle_time = Column(Integer)
+
+    def __repr__(self):
+        return "<Cycle Object %s for seq %s>" % (self.cycle_time, self.seq)
+
+
+def create_db(file):
+    engine = create_engine('sqlite:///%s.db' % file)
+    Base.metadata.create_all(engine)
+
