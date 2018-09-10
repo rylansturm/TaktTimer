@@ -51,6 +51,11 @@ class Schedule(Base):
                 block_times.append(get_seconds(i[0], i[1]))
         self.available_time = sum(block_times)
 
+    def get_times(self, s1=None, e1=None, s2=None, e2=None, s3=None, e3=None, s4=None, e4=None):
+        self.start1, self.start2, self.start3, self.start4 = s1, s2, s3, s4
+        self.end1, self.end2, self.end3, self.end4 = e1, e2, e3, e4
+        self.get_available_time()
+
     def __repr__(self):
         return "<Schedule Object '%s' for %s shift>" % (self.name, self.shift)
 
@@ -58,7 +63,7 @@ class Schedule(Base):
 class KPI(Base):
     __tablename__ = 'kpi'
     id = Column(Integer, primary_key=True)
-    d = Column(Date, index=True,nullable=False)
+    d = Column(Date, index=True, nullable=False)
     shift = Column(String(16), index=True, nullable=False)
     demand = Column(Integer)
     delivered = Column(Integer)

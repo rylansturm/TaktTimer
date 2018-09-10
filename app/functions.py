@@ -1,15 +1,23 @@
 from app import app, timedata
 from config import GUIVar, GUIConfig, basedir
+import configparser
 import datetime
 from math import floor
 import os
+from models import *
+
+
+c = configparser.ConfigParser()
+c.read('install.ini')
 
 
 class Var:
+    db_file = 'app.db'
+    db_poll_count = 35
     now = datetime.datetime.now()
     mark = datetime.datetime.now()
     block = 0
-    sched = timedata.TimeData("%s/schedules/%s.ini" % (os.path.dirname(__file__), 'Day'))
+    sched = timedata.TimeData(name='Regular', shift='Day')
     started = False
     available_time = 23100
     demand = 360
@@ -44,6 +52,26 @@ def counting():
         app.setLabelBg('tCycle', GUIConfig.andonColor)
     elif Var.tCycle != GUIConfig.appBgColor and Var.tCycle > window:
         app.setLabelBg('tCycle', GUIConfig.appBgColor)
+    Var.db_poll_count += 1
+    if Var.db_poll_count == 50:
+        session = create_session('app.db')
+        try:
+            kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
+                                            KPI.d == datetime.date.today()).one()
+            Var.kpi = kpi.id
+            if c['Install']['type'] == 'Worker':
+                if app.getOptionBox('Shift: ') != kpi.shift or \
+                        app.getOptionBox('Schedule: ') != kpi.schedule.name or\
+                        int(app.getEntry('demand')) != kpi.demand:
+                    app.setOptionBox('Shift: ', kpi.shift)
+                    app.setOptionBox('Schedule: ', kpi.schedule.name)
+                    app.setEntry('demand', kpi.demand)
+                    Var.sched = timedata.TimeData(shift=kpi.shift, name=kpi.schedule.name)
+                    read_time_file()
+                    recalculate()
+        except:
+            print("Today's KPI is not yet available")
+        Var.db_poll_count = 0
 
 
 def cycle():
@@ -162,6 +190,17 @@ def press(btn):
             Var.mark = datetime.datetime.now()
             Var.started = True
             recalculate()
+            if c['Install']['type'] == 'Server':
+                session = create_session('app.db')
+                try:
+                    kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
+                                                    KPI.d == datetime.date.today()).one()
+                except:
+                    kpi = KPI(d=datetime.date.today(), shift=app.getOptionBox('Shift: '))
+                kpi.demand = app.getEntry('demand')
+                kpi.schedule_id = Var.sched.id
+                session.add(kpi)
+                session.commit()
     if btn == 'leadUnverifiedButton':
         Var.lead_unverified = 0
         app.setLabel('leadUnverified', Var.lead_unverified)
@@ -201,12 +240,17 @@ def menu_press(btn):
         app.stop()
 
 
-def enable_sched_select():
-    for box in ['Shift: ', 'Schedule: ']:
-        app.enableOptionBox(box)
-    app.setOptionBox('Shift: ', shift_guesser())
-    read_time_file()
-    app.enableButton('Go')
+# def enable_sched_select():
+#     for box in ['Shift: ', 'Schedule: ']:
+#         app.enableOptionBox(box)
+#     app.setOptionBox('Shift: ', shift_guesser())
+#     session = create_session(Var.db_file)
+#     schedule_list = []
+#     for sched in session.query(Schedule).filter(Schedule.shift == shift_guesser()).all():
+#         schedule_list.append(sched.name)
+#     app.changeOptionBox('Schedule: ', schedule_list)
+#     read_time_file()
+#     app.enableButton('Go')
 
 
 def enable_parts_out():
@@ -248,11 +292,16 @@ def shift_adjust(btn):
 
 
 def read_time_file():
-    file = basedir + '/%s/Schedules/%s/%s.ini' % (app.getOptionBox('Area: '),
-                                                  app.getOptionBox('Shift: '),
-                                                  app.getOptionBox('Schedule: '))
+    # file = basedir + '/%s/Schedules/%s/%s.ini' % (app.getOptionBox('Area: '),
+    #                                               app.getOptionBox('Shift: '),
+    #                                               app.getOptionBox('Schedule: '))
     try:
-        Var.sched = timedata.TimeData(file)
+        Var.sched = timedata.TimeData(shift=app.getOptionBox('Shift: '), name=app.getOptionBox('Schedule: '))
+        schedule_list = []
+        session = create_session('app.db')
+        for sched in session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: ')).all():
+            schedule_list.append(sched.name)
+        app.changeOptionBox('Schedule: ', schedule_list)
     except KeyError:
         file = "%s/schedules/%s.ini" % (os.path.dirname(__file__), app.getOptionBox('Shift: '))
         Var.sched = timedata.TimeData(file)
@@ -269,10 +318,10 @@ def read_time_file():
         except:
             print('block %s does not exist. Ignoring command to delete labels.' % block)
     app.openLabelFrame('Parameters')
-    start = datetime.datetime.time(sched.start).strftime('%H:%M')
-    end = datetime.datetime.time(sched.end).strftime('%H:%M')
+    # start = datetime.datetime.time(sched.start).strftime('%H:%M')
+    # end = datetime.datetime.time(sched.end).strftime('%H:%M')
     # percent = sum(sched.blockSeconds)/schedule.get_seconds(sched.start, sched.end)
-    app.setLabel('start-end', '%s - %s' % (start, end))
+    # app.setLabel('start-end', '%s - %s' % (start, end))
     app.setLabel('start-endTotal', str(sum(sched.blockSeconds)) + ' seconds')
     # app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
     for block in range(1, len(sched.available) + 1):
@@ -298,6 +347,5 @@ def read_time_file():
                 app.addButton(title=button, func=buttons[button][0],
                               row=buttons[button][1], column=buttons[button][2])
                 app.setButton(button, '+' if button[5:7] == 'UP' else '-')
-
     app.stopLabelFrame()
     Var.mark = datetime.datetime.now()

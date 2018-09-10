@@ -65,22 +65,24 @@ with app.tabbedFrame('Tabs'):
         app.setMessageAspect('cycleTimes', 500)
         app.addButton('Machine Down\nAlarm Override', press)
         app.addLabel('battingAVG', 'N/A')
+        with app.labelFrame('Time'):
+            app.addEmptyLabel('empty')
 
     # Setup tab #
     with app.tab(GUIConfig.tabs[2]):
         with app.labelFrame('Presets', row=0, column=0):
             app.setSticky('new')
-            app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
-            app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
+            # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
+            # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
             app.addOptionBox('Shift: ', GUIVar.shifts)
-            app.setOptionBox('Shift: ', 'Day')
+            app.setOptionBox('Shift: ', shift_guesser())
             app.addOptionBox('Schedule: ', GUIVar.scheduleTypes)
             for box in ['Shift: ', 'Schedule: ']:
-                app.disableOptionBox(box)
+                # app.disableOptionBox(box)
                 app.setOptionBoxChangeFunction(box, read_time_file)
         with app.frame('buttons', row=1, column=0):
             app.addButton('Go', press, row=3, column=0, colspan=2)
-            app.disableButton('Go')
+            # app.disableButton('Go')
             app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
             app.addLabel('taktLabel2', 'Takt', row=3, column=2)
             app.addLabel('takt2', 0, row=4, column=2)
@@ -130,6 +132,7 @@ with app.tabbedFrame('Tabs'):
                     app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
                     # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
 
+read_time_file()
 
 for i in GUIConfig.tabs:
     app.setTabBg('Tabs', i, GUIConfig.appBgColor)

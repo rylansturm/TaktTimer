@@ -1,9 +1,13 @@
 import datetime
 import os
+import configparser
 
 basedir = "P:/Talladega Factory/Swing/Rylan Sturm/Company Takt Timer/Data"
+c = configparser.ConfigParser()
+c.read('install.ini')
 
 class GUIConfig(object):
+    db_file             = 'app.db'
     platform            = os.sys.platform
     title               = 'Takt Timer'
     windowSize          = {'linux': 'fullscreen',
@@ -32,7 +36,7 @@ class GUIVar(object):
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',
                            'Richmond', 'Bristol', 'Sonoma', 'Texas',
                            'Atlanta', 'Fontana', 'Monaco']
-    scheduleTypes       = ['Regular', 'Pit Stop', 'Department Lunch']
+    scheduleTypes       = ['Regular', 'Department Lunch', 'Pit Stop']
     ordinalList         = ['', 'First', 'Second', 'Third', 'Fourth',
                            'Fifth', 'Sixth', 'Seventh', 'Eighth']
     target_window       = 3
