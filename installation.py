@@ -27,6 +27,7 @@ def install():
         c.write(configfile)
     inst.stop()
 
+
 inst = gui('TaktTimer Installer', GUIConfig.windowSize[GUIConfig.platform])
 
 with inst.pagedWindow('Pages'):

@@ -89,7 +89,7 @@ def create_db(file):
 
 def create_session(file):
     """ returns a db session for the given database file """
-    engine = create_engine('sqlite:///%s.db' % file)
+    engine = create_engine('sqlite:///%s' % file)
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()

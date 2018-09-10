@@ -1,9 +1,9 @@
 import os
-
+import sys
+sys.path.insert(0, 'venv/Lib/site-packages')
 
 while True:
     if os.path.exists('install.ini'):
-
         from app import app
         from app import layout
         from config import GUIVar
@@ -14,7 +14,6 @@ while True:
 
         app.go()
         break
-
     else:
         try:
             from installation import *
