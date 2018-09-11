@@ -13,11 +13,12 @@ c.read('install.ini')
 
 class Var:
     db_file = 'app.db'
-    db_poll_count = 35
+    db_poll_count = 45
+    time_open = datetime.datetime.now()
     now = datetime.datetime.now()
     mark = datetime.datetime.now()
     block = 0
-    sched = timedata.TimeData(name='Regular', shift='Day')
+    sched = None
     started = False
     available_time = 23100
     demand = 360
@@ -39,6 +40,7 @@ class Var:
 
 
 def counting():
+    print('running app.functions.counting: %s/50' % Var.db_poll_count)
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
     label_update()
@@ -63,8 +65,8 @@ def counting():
                 if app.getOptionBox('Shift: ') != kpi.shift or \
                         app.getOptionBox('Schedule: ') != kpi.schedule.name or\
                         int(app.getEntry('demand')) != kpi.demand:
-                    app.setOptionBox('Shift: ', kpi.shift)
-                    app.setOptionBox('Schedule: ', kpi.schedule.name)
+                    app.setOptionBox('Shift: ', kpi.shift, callFunction=False)
+                    app.setOptionBox('Schedule: ', kpi.schedule.name, callFunction=False)
                     app.setEntry('demand', kpi.demand)
                     Var.sched = timedata.TimeData(shift=kpi.shift, name=kpi.schedule.name)
                     read_time_file()
@@ -211,6 +213,7 @@ def press(btn):
 
 
 def recalculate():
+    print('app.functions.recalculate')
     Var.available_time = sum(Var.sched.blockSeconds)
     Var.demand = int(app.getEntry('demand'))
     Var.takt = Var.available_time / Var.demand
@@ -292,20 +295,23 @@ def shift_adjust(btn):
 
 
 def read_time_file():
+    print('reading time file')
     # file = basedir + '/%s/Schedules/%s/%s.ini' % (app.getOptionBox('Area: '),
     #                                               app.getOptionBox('Shift: '),
     #                                               app.getOptionBox('Schedule: '))
     try:
         Var.sched = timedata.TimeData(shift=app.getOptionBox('Shift: '), name=app.getOptionBox('Schedule: '))
-        schedule_list = []
-        session = create_session('app.db')
-        for sched in session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: ')).all():
-            schedule_list.append(sched.name)
-        app.changeOptionBox('Schedule: ', schedule_list)
+#        schedule_list = []
+#        session = create_session('app.db')
+#        for sched in session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: ')).all():
+#            schedule_list.append(sched.name)
+#        app.changeOptionBox('Schedule: ', schedule_list, callFunction=False)
     except KeyError:
         file = "%s/schedules/%s.ini" % (os.path.dirname(__file__), app.getOptionBox('Shift: '))
         Var.sched = timedata.TimeData(file)
+    print('created %s' % Var.sched)
     sched = Var.sched
+    print('removing old block data')
     for block in range(1, 9):
         try:
             for label in ['block%s' % block, 'block%sTotal' % block]:
@@ -324,6 +330,7 @@ def read_time_file():
     # app.setLabel('start-end', '%s - %s' % (start, end))
     app.setLabel('start-endTotal', str(sum(sched.blockSeconds)) + ' seconds')
     # app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
+    print('creating new block data')
     for block in range(1, len(sched.available) + 1):
         with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
             app.setSticky('new')
@@ -349,3 +356,4 @@ def read_time_file():
                 app.setButton(button, '+' if button[5:7] == 'UP' else '-')
     app.stopLabelFrame()
     Var.mark = datetime.datetime.now()
+    print('finished with app.function.read_time_file')

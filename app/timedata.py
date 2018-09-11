@@ -19,6 +19,7 @@ def get_seconds(time1, time2):
 
 class TimeData:
     def __init__(self, shift: str='Day', name: str='Regular'):
+        print('initializing TimeData object')
         session = create_session('app.db')
         s = session.query(Schedule).filter(Schedule.shift == shift, Schedule.name == name).first()
         # self.start = convert(c['Shift']['start'])
@@ -29,13 +30,15 @@ class TimeData:
             try:
                 self.available.append(convert(i))
             except TypeError:
-                print('value nonexistent. skipping...')
+                pass
+        print('adding %s to available list' % self.available)
         self.breaks = []
         for i in [s.end1, s.end2, s.end3, s.end4, s.end5, s.end6, s.end7, s.end8]:
             try:
                 self.breaks.append(convert(i))
             except TypeError:
-                print('value nonexistent. skipping...')
+                pass
+        print('adding %s to breaks list' % self.breaks)
         self.sched = []
         for i in range(len(self.available)):
             self.sched.append(self.available[i])

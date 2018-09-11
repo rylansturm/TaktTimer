@@ -5,7 +5,7 @@ app.registerEvent(counting)
 # Drop down menus at top left #
 app.addMenuList('File', GUIVar.fileMenuList, menu_press)
 
-
+print('creating tabs')
 # Tabbed Frame that holds the whole GUI #
 with app.tabbedFrame('Tabs'):
 
@@ -30,7 +30,6 @@ with app.tabbedFrame('Tabs'):
             app.addMeter('timeMeter', row=4, column=0, colspan=4)
             app.setMeter('timeMeter', 0, '0 / 0 Seconds Passed')
             app.setMeterFill('timeMeter', GUIConfig.timeMeterFill)
-
         with app.labelFrame('data', row=0, column=1, rowspan=5, hideTitle=True):
             app.setSticky('new')
             with app.labelFrame('times', row=0, colspan=2, hideTitle=True):
@@ -59,6 +58,8 @@ with app.tabbedFrame('Tabs'):
             app.addLabel('partsAhead', 0, row=6, column=0)
             app.addButton('Reject + 1', press, row=5, column=1, rowspan=2)
 
+    print('%s seconds to data tab' % (datetime.datetime.now()-Var.time_open).total_seconds())
+
     # DATA tab #
     with app.tab(GUIConfig.tabs[1]):
         app.addMessage('cycleTimes', [])
@@ -67,6 +68,8 @@ with app.tabbedFrame('Tabs'):
         app.addLabel('battingAVG', 'N/A')
         with app.labelFrame('Time'):
             app.addEmptyLabel('empty')
+
+    print('%s seconds to setup tab' % (datetime.datetime.now()-Var.time_open).total_seconds())
 
     # Setup tab #
     with app.tab(GUIConfig.tabs[2]):
@@ -131,7 +134,7 @@ with app.tabbedFrame('Tabs'):
                     app.addLabel('block%s' % block, 'time-time', 0, 0)
                     app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
                     # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
-
+print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.time_open).total_seconds())
 read_time_file()
 
 for i in GUIConfig.tabs:
