@@ -31,7 +31,13 @@ def install():
                 s = Schedule(name=sched, shift=('Grave' if shift == Grave\
                                                 else 'Swing' if shift == Swing\
                                                 else 'Day'))
-                s.get_times(*list(shift[sched].values()))
+                ss = shift[sched]
+                s.get_times(s1=ss['start1'], s2=ss['start2'], s3=ss['start3'],
+                            s4=ss['start4'], s5=ss['start5'], s6=ss['start6'],
+                            s7=ss['start7'], s8=ss['start8'], e1=ss['end1'],
+                            e2=ss['end2'],   e3=ss['end3'],   e4=ss['end4'],
+                            e5=ss['end5'],   e6=ss['end6'],   e7=ss['end7'],
+                            e8=ss['end8'],)
                 session.add(s)
                 session.commit()
     with open(file, 'w') as configfile:
