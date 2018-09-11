@@ -91,13 +91,13 @@ class Cycles(Base):
 
 
 def create_db(file):
-    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@localhost/timers')
+    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.21/timers')
     Base.metadata.create_all(engine)
 
 
 def create_session(file):
     """ returns a db session for the given database file """
-    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@localhost/timers')
+    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.21/timers')
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
