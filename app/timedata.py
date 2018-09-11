@@ -20,7 +20,7 @@ def get_seconds(time1, time2):
 class TimeData:
     def __init__(self, shift: str='Day', name: str='Regular'):
         print('initializing TimeData object')
-        session = create_session('app.db')
+        session = create_session()
         s = session.query(Schedule).filter(Schedule.shift == shift, Schedule.name == name).first()
         # self.start = convert(c['Shift']['start'])
         # self.end = convert(c['Shift']['end'])

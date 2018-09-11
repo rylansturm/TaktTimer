@@ -24,10 +24,10 @@ def install():
                     }
     c['Database'] = {'file': inst.getEntry('file')}
     if Var.install_type == 'Server':
-        create_db(inst.getEntry('file'))
+        create_db()
         for shift in [Grave, Day, Swing]:
             for sched in shift:
-                session = create_session(inst.getEntry('file'))
+                session = create_session()
                 s = Schedule(name=sched, shift=('Grave' if shift == Grave\
                                                 else 'Swing' if shift == Swing\
                                                 else 'Day'))

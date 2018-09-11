@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
 import datetime
+from config import GUIConfig
 
 Base = declarative_base()
 
@@ -90,14 +91,20 @@ class Cycles(Base):
         return "<Cycle Object %s for seq %s>" % (self.cycle_time, self.seq)
 
 
-def create_db(file):
-    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.21/timers')
+def create_db():
+    if GUIConfig.platform == 'win32':
+        engine = create_engine('sqlite:///app.db')
+    else:
+        engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.21/timers')
     Base.metadata.create_all(engine)
 
 
-def create_session(file):
+def create_session():
     """ returns a db session for the given database file """
-    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.21/timers')
+    if GUIConfig.platform == 'win32':
+        engine = create_engine('sqlite:///app.db')
+    else:
+        engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.21/timers')
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()

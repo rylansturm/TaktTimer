@@ -56,7 +56,7 @@ def counting():
         app.setLabelBg('tCycle', GUIConfig.appBgColor)
     Var.db_poll_count += 1
     if Var.db_poll_count == 50:
-        session = create_session('app.db')
+        session = create_session()
         try:
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                             KPI.d == datetime.date.today()).one()
@@ -193,7 +193,7 @@ def press(btn):
             Var.started = True
             recalculate()
             if c['Install']['type'] == 'Server':
-                session = create_session('app.db')
+                session = create_session()
                 try:
                     kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
                                                     KPI.d == datetime.date.today()).one()
