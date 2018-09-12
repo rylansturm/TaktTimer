@@ -38,7 +38,7 @@ class GUIVar(object):
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',
                            'Richmond', 'Bristol', 'Sonoma', 'Texas',
                            'Atlanta', 'Fontana', 'Monaco']
-    scheduleTypes       = ['Regular', 'Department Lunch', 'Pit Stop']
+    scheduleTypes       = ['Regular', 'Department Lunch', 'Pit Stop', '', 'Custom']
     ordinalList         = ['', 'First', 'Second', 'Third', 'Fourth',
                            'Fifth', 'Sixth', 'Seventh', 'Eighth']
     target_window       = 3

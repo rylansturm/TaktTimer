@@ -18,10 +18,11 @@ class Var:
     now = datetime.datetime.now()
     mark = datetime.datetime.now()
     block = 0
-    sched = None
+    sched = timedata.TimeData()
     started = False
     available_time = 23100
     demand = 360
+    shift = 'Day'
     takt = 64.17
     tct = int(takt)
     tCycle = 0
@@ -41,11 +42,22 @@ class Var:
     seq = 1
     kpi_id = None
     ahead = True
+    edited = False
+    schedule_option_list = []
+    breaktime = True
 
 
-def counting():
+def counting_worker():
+    print('Counting %s/50' % Var.db_poll_count)
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
+    app.setLabel('block', Var.block)
+    if not Var.breaktime and Var.block == 0:
+        Var.breaktime = True
+        break_seconds = Var.sched.breakSeconds[get_block_var() // 2]
+        Var.mark += datetime.timedelta(seconds=break_seconds)
+    elif Var.breaktime and Var.block != 0:
+        Var.breaktime = False
     label_update()
     if Var.started and Var.block != 0:
         Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))
@@ -65,19 +77,23 @@ def counting():
                                             KPI.d == datetime.date.today()).one()
             Var.kpi_id = kpi.id
             if c['Install']['type'] == 'Worker':
-                if app.getOptionBox('Shift: ') != kpi.shift or \
-                        app.getOptionBox('Schedule: ') != kpi.schedule.name or\
-                        int(app.getEntry('demand')) != kpi.demand:
-                    app.setOptionBox('Shift: ', kpi.shift, callFunction=False)
-                    app.setOptionBox('Schedule: ', kpi.schedule.name, callFunction=False)
-                    app.setEntry('demand', kpi.demand)
+                if Var.shift != kpi.shift or \
+                        Var.sched.name != kpi.schedule.name or\
+                        Var.demand != kpi.demand:
+                    Var.shift = kpi.shift
                     Var.sched = timedata.TimeData(shift=kpi.shift, name=kpi.schedule.name)
-                    read_time_file()
+                    Var.demand = kpi.demand
                     recalculate()
+                    Var.started = True
         except:
             print("Today's KPI is not yet available")
         Var.db_poll_count = 0
         session.close()
+
+
+def counting_server():
+    app.setLabel('timestamp',
+                 datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
 
 
 def cycle():
@@ -159,6 +175,10 @@ def label_update():
     app.setLabel('lastCycle', Var.last_cycle)
     if get_block_var() in range(len(Var.sched.sched)):
         app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
+        if Var.block == 0:
+            app.setLabel('nextBreakLabel', 'Starting at: ')
+        else:
+            app.setLabel('nextBreakLabel', 'Next Break: ')
     if Var.ahead and int(app.getLabel('partsAhead')) < 0:
         Var.ahead = False
         app.setLabel('partsAheadLabel', 'Parts\nBehind')
@@ -202,7 +222,7 @@ def time_elapsed():
     block = get_block_var()
     elapsed = (now - Var.sched.sched[0]).total_seconds()
     for i in range(int(len(Var.sched.sched)/2) - 1):
-        elapsed -= (Var.sched.breakSeconds[i] if block/2 >= i+1 else 0)
+        elapsed -= (Var.sched.breakSeconds[i] if block/2 > i+1 else 0)
     if block % 2 == 0:
         elapsed -= (now - Var.sched.sched[block - 1]).total_seconds()
     return elapsed
@@ -249,17 +269,23 @@ def press(btn):
 def recalculate():
     print('app.functions.recalculate')
     Var.available_time = sum(Var.sched.blockSeconds)
-    Var.demand = int(app.getEntry('demand'))
+    # Var.demand = int(app.getEntry('demand'))
     Var.takt = Var.available_time / Var.demand
     Var.tct = get_tct()
-    Var.partsper = int(app.getEntry('partsper'))
-    Var.sequence_time = Var.tct * Var.partsper
-    app.setLabel('Takt', countdown_format(int(Var.takt)))
-    app.setLabel('takt2', countdown_format(int(Var.takt)))
-    app.setLabel('TCT', countdown_format(get_tct()))
-    app.setLabel('Seq', countdown_format(int(Var.sequence_time)))
-    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+    try:
+        # Var.partsper = int(app.getEntry('partsper'))
+        Var.sequence_time = Var.tct * Var.partsper
+        app.setLabel('Takt', countdown_format(int(Var.takt)))
+        app.setLabel('TCT', countdown_format(Var.tct))
+        app.setLabel('Seq', countdown_format(int(Var.sequence_time)))
+        app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
+                     '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+    except Exception:
+        print('skipping certain labels belonging to Worker')
+    try:
+        app.setLabel('takt2', countdown_format(int(Var.takt)))
+    except Exception:
+        print('skipping certain labels belonging to Server')
 
 
 def key_press(key):
@@ -307,6 +333,9 @@ def shift_guesser():
         else 'Day' if Var.now.hour >= 7 else 'Grave'
 
 
+Var.shift = shift_guesser()
+
+
 def countdown_format(seconds: int):
     hours, minutes = divmod(seconds, 3600)
     minutes, seconds = divmod(minutes, 60)
@@ -317,27 +346,74 @@ def countdown_format(seconds: int):
 
 
 def shift_adjust(btn):
+    Var.edited = True
+    app.setOptionBox('Schedule: ', 'Custom', callFunction=False)
     block_index = int(btn[7:])-1
     change_list = Var.sched.available if btn[:5] == 'start' else Var.sched.breaks
     direction = btn[5:7]
     increment = GUIConfig.schedule_increment
     change_list[block_index] += increment if direction == 'UP' else -increment
-    app.setLabel('block%s' % str(block_index+1), '%s -\n %s' % (Var.sched.available[block_index].strftime('%H:%M'),
-                                                                Var.sched.breaks[block_index].strftime('%H:%M')))
+    app.setLabel('block%s' % str(block_index + 1), '%s\n%s' % (Var.sched.available[block_index].strftime('%I:%M %p'),
+                                                                  Var.sched.breaks[block_index].strftime('%I:%M %p')))
     Var.sched.get_sched()
     Var.sched.get_block_seconds()
     Var.sched.get_break_seconds()
-    app.setLabel('block%sTotal' % str(block_index+1), str(Var.sched.blockSeconds[block_index]) + ' Seconds')
-    app.setLabel('start-endTotal', str(sum(Var.sched.blockSeconds)) + ' seconds')
+    app.setLabel('block%sTotal' % str(block_index+1), str(Var.sched.blockSeconds[block_index]) + '\nSeconds')
 
 
-def read_time_file():
+def set_kpi(btn):
+    if int(app.getEntry('demand')) == 0:
+        app.warningBox('No Demand', 'No demand was entered.')
+    else:
+        if Var.edited:
+            app.showSubWindow('New Schedule')
+        else:
+            Var.mark = datetime.datetime.now()
+            recalculate()
+        session = create_session()
+        try:
+            kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
+                                            KPI.d == datetime.date.today()).one()
+        except:
+            kpi = KPI(d=datetime.date.today(), shift=app.getOptionBox('Shift: '))
+        kpi.demand = app.getEntry('demand')
+        kpi.schedule_id = Var.sched.id
+        session.add(kpi)
+        session.commit()
+        session.close()
+
+
+def change_schedule_box_options():
+    Var.edited = False
+    session = create_session()
+    options = session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: '))
+    Var.schedule_option_list = []
+    for sched in options:
+        Var.schedule_option_list.append(sched.name)
+    app.changeOptionBox('Schedule: ', Var.schedule_option_list + ['', 'Custom'])
+    session.close()
+
+
+def determine_time_file():
+    if app.getOptionBox('Schedule: ') in Var.schedule_option_list:
+        read_time_file()
+        Var.edited = False
+    else:
+        read_time_file(shift=app.getOptionBox('Shift: '), name='Regular')
+        Var.edited = True
+
+
+def read_time_file(shift=None, name=None):
+    if shift is None:
+        shift = app.getOptionBox('Shift: ')
+    if name is None:
+        name = app.getOptionBox('Schedule: ')
     print('reading time file')
     # file = basedir + '/%s/Schedules/%s/%s.ini' % (app.getOptionBox('Area: '),
     #                                               app.getOptionBox('Shift: '),
     #                                               app.getOptionBox('Schedule: '))
     try:
-        Var.sched = timedata.TimeData(shift=app.getOptionBox('Shift: '), name=app.getOptionBox('Schedule: '))
+        Var.sched = timedata.TimeData(shift=shift, name=name)
 #        schedule_list = []
 #        session = create_session('app.db')
 #        for sched in session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: ')).all():
@@ -369,9 +445,8 @@ def read_time_file():
     # app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
     print('creating new block data')
     for block in range(1, len(sched.available) + 1):
-        with app.frame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
+        with app.frame('%s Block' % GUIVar.ordinalList[block], row=block-1, column=0):
             app.setSticky('new')
-            app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
             start = datetime.datetime.time(sched.available[block-1])
             end = datetime.datetime.time(sched.breaks[block-1])
             block_time = sched.blockSeconds[block-1]
@@ -381,8 +456,8 @@ def read_time_file():
                        'endedUP%s' % block: [shift_adjust, 1, 2],
                        'endedDN%s' % block: [shift_adjust, 1, 0],
                        }
-            d = {'block%s' % block:         ['%s\n %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
-                 'block%sTotal' % block:    ['%s Seconds' % block_time, 2, 1, 0],
+            d = {'block%s' % block:         ['%s\n%s' % (start.strftime('%I:%M %p'), end.strftime('%I:%M %p')), 0, 1, 2],
+                 'block%sTotal' % block:    ['%s\nSeconds' % block_time, 0, 3, 2],
                  # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
                  }
             for label in d:

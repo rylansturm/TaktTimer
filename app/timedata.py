@@ -25,6 +25,7 @@ class TimeData:
         # self.start = convert(c['Shift']['start'])
         # self.end = convert(c['Shift']['end'])
         self.id = s.id
+        self.name = s.name
         self.available = []
         for i in [s.start1, s.start2, s.start3, s.start4, s.start5, s.start6, s.start7, s.start8]:
             try:
