@@ -31,6 +31,7 @@ class GUIVar(object):
     demandIncrements    = ['24', '1']
     partsperIncrements  = ['24', '1']
     fileMenuList        = ['Fullscreen', '-', 'Exit']
+    seqMenuList         = list(range(1, 10))
     keys                = ['1', '<space>', '<F11>']
     shifts              = ['Grave', 'Day', 'Swing']
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',

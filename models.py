@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Time, Date, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, Time, Date, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
@@ -84,6 +84,9 @@ class Cycles(Base):
     d = Column(DateTime, index=True)
     seq = Column(Integer, index=True)
     cycle_time = Column(Integer)
+    parts_per = Column(Integer)
+    delivered = Column(Integer)
+    hit = Column(Boolean)
     kpi_id = Column(Integer, ForeignKey('kpi.id'))
     kpi = relationship(KPI)
 

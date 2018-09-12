@@ -4,6 +4,7 @@ app.registerEvent(counting)
 
 # Drop down menus at top left #
 app.addMenuList('File', GUIVar.fileMenuList, menu_press)
+app.addMenuList('Sequence', GUIVar.seqMenuList, menu_press)
 
 print('creating tabs')
 # Tabbed Frame that holds the whole GUI #
@@ -65,6 +66,7 @@ with app.tabbedFrame('Tabs'):
         app.addMessage('cycleTimes', [])
         app.setMessageAspect('cycleTimes', 500)
         app.addButton('Machine Down\nAlarm Override', press)
+        app.addLabel('sequence_number', None)
         app.addLabel('battingAVG', 'N/A')
         with app.labelFrame('Time'):
             app.addEmptyLabel('empty')

@@ -33,10 +33,13 @@ class Var:
     early = 0
     late = 0
     on_time = 0
+    hit = False
     lead_unverified = 0
     batting_avg = 0.0
     last_cycle = 0
     times_list = []
+    seq = 1
+    kpi_id = None
 
 
 def counting():
@@ -60,7 +63,7 @@ def counting():
         try:
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                             KPI.d == datetime.date.today()).one()
-            Var.kpi = kpi.id
+            Var.kpi_id = kpi.id
             if c['Install']['type'] == 'Worker':
                 if app.getOptionBox('Shift: ') != kpi.shift or \
                         app.getOptionBox('Schedule: ') != kpi.schedule.name or\
@@ -85,12 +88,15 @@ def cycle():
     display_cycle_times()
     window = GUIVar.target_window * Var.partsper
     if t > window:
+        Var.hit = False
         Var.early += 1
         Var.lead_unverified += 1
     elif t < -window:
+        Var.hit = False
         Var.late += 1
         Var.lead_unverified += 1
     else:
+        Var.hit = True
         Var.on_time += 1
     Var.tct = get_tct()
     Var.sequence_time = Var.tct * Var.partsper
@@ -101,6 +107,20 @@ def cycle():
     Var.mark = datetime.datetime.now()
     app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
                  '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+    app.thread(data_log())
+
+
+def data_log():
+    session = create_session()
+    new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle, delivered=Var.parts_delivered, hit=Var.hit)
+    if Var.kpi_id:
+        new_cycle.kpi_id = Var.kpi_id
+    else:
+        new_cycle.kpi_id = session.query(KPI).filter(KPI.date == datetime.date.today(),
+                                                     KPI.shift == shift_guesser()).one().id
+        Var.kpi_id = new_cycle.kpi
+    session.add(new_cycle)
+    session.commit()
 
 
 def display_cycle_times():
@@ -239,8 +259,11 @@ def menu_press(btn):
     """ handles all options under the File menu """
     if btn == 'Fullscreen':
         key_press('<F11>')
-    if btn == 'Exit':
+    elif btn == 'Exit':
         app.stop()
+    else:
+        Var.seq = int(btn)
+        app.setLabel('sequence_number', Var.seq)
 
 
 # def enable_sched_select():
