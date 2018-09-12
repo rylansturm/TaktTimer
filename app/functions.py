@@ -25,7 +25,7 @@ class Var:
     takt = 64.17
     tct = int(takt)
     tCycle = 0
-    partsper = 2
+    partsper = 1
     sequence_time = int(tct * partsper)
     parts_delivered = 0
     andon = False
@@ -77,6 +77,7 @@ def counting():
         except:
             print("Today's KPI is not yet available")
         Var.db_poll_count = 0
+        session.close()
 
 
 def cycle():
@@ -112,7 +113,8 @@ def cycle():
 
 def data_log():
     session = create_session()
-    new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle, delivered=Var.parts_delivered, hit=Var.hit)
+    new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle,
+                       parts_per=Var.partsper, delivered=Var.parts_delivered, hit=Var.hit)
     if Var.kpi_id:
         new_cycle.kpi_id = Var.kpi_id
     else:
@@ -121,6 +123,7 @@ def data_log():
         Var.kpi_id = new_cycle.kpi
     session.add(new_cycle)
     session.commit()
+    session.close()
 
 
 def display_cycle_times():
@@ -170,6 +173,7 @@ def partsper_set(btn):
     partsper += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
     partsper = (1 if partsper < 1 else partsper)
     app.setEntry('partsper', partsper)
+    Var.partsper = partsper
     recalculate()
 
 
@@ -223,6 +227,7 @@ def press(btn):
                 kpi.schedule_id = Var.sched.id
                 session.add(kpi)
                 session.commit()
+                session.close()
     if btn == 'leadUnverifiedButton':
         Var.lead_unverified = 0
         app.setLabel('leadUnverified', Var.lead_unverified)
