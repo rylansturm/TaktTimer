@@ -40,10 +40,10 @@ class Var:
     times_list = []
     seq = 1
     kpi_id = None
+    ahead = True
 
 
 def counting():
-    print('running app.functions.counting: %s/50' % Var.db_poll_count)
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
     label_update()
@@ -131,7 +131,8 @@ def display_cycle_times():
     for i in Var.times_list:
         cycle_list.append(str(i))
     data = ', '.join(cycle_list)
-    app.setMessage('cycleTimes', data)
+    app.clearTextArea('cycleTimes')
+    app.setTextArea('cycleTimes', data)
 
 
 def get_tct():
@@ -158,6 +159,14 @@ def label_update():
     app.setLabel('lastCycle', Var.last_cycle)
     if get_block_var() in range(len(Var.sched.sched)):
         app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
+    if Var.ahead and int(app.getLabel('partsAhead')) < 0:
+        Var.ahead = False
+        app.setLabel('partsAheadLabel', 'Parts\nBehind')
+        app.setLabelBg('partsAhead', 'red')
+    if not Var.ahead and int(app.getLabel('partsAhead')) >= 0:
+        Var.ahead = True
+        app.setLabel('partsAheadLabel', 'Parts\nAhead')
+        app.setLabelBg('partsAhead', GUIConfig.appBgColor)
 
 
 def demand_set(btn):
@@ -351,16 +360,16 @@ def read_time_file():
             print('removing block %s labels' % block)
         except:
             print('block %s does not exist. Ignoring command to delete labels.' % block)
-    app.openLabelFrame('Parameters')
+    app.openFrame('Parameters')
     # start = datetime.datetime.time(sched.start).strftime('%H:%M')
     # end = datetime.datetime.time(sched.end).strftime('%H:%M')
     # percent = sum(sched.blockSeconds)/schedule.get_seconds(sched.start, sched.end)
     # app.setLabel('start-end', '%s - %s' % (start, end))
-    app.setLabel('start-endTotal', str(sum(sched.blockSeconds)) + ' seconds')
+    # app.setLabel('start-endTotal', str(sum(sched.blockSeconds)) + ' seconds')
     # app.setLabel('start-endPercent', ('%.2f%s of total time\n   spent in flow' % (percent, '%'))[2:])
     print('creating new block data')
     for block in range(1, len(sched.available) + 1):
-        with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
+        with app.frame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
             app.setSticky('new')
             app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
             start = datetime.datetime.time(sched.available[block-1])
@@ -372,7 +381,7 @@ def read_time_file():
                        'endedUP%s' % block: [shift_adjust, 1, 2],
                        'endedDN%s' % block: [shift_adjust, 1, 0],
                        }
-            d = {'block%s' % block:         ['%s -\n %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
+            d = {'block%s' % block:         ['%s\n %s' % (start.strftime('%H:%M'), end.strftime('%H:%M')), 0, 1, 2],
                  'block%sTotal' % block:    ['%s Seconds' % block_time, 2, 1, 0],
                  # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
                  }
@@ -382,6 +391,6 @@ def read_time_file():
                 app.addButton(title=button, func=buttons[button][0],
                               row=buttons[button][1], column=buttons[button][2])
                 app.setButton(button, '+' if button[5:7] == 'UP' else '-')
-    app.stopLabelFrame()
+    app.stopFrame()
     Var.mark = datetime.datetime.now()
     print('finished with app.function.read_time_file')

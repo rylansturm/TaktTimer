@@ -63,10 +63,9 @@ with app.tabbedFrame('Tabs'):
 
     # DATA tab #
     with app.tab(GUIConfig.tabs[1]):
-        app.addMessage('cycleTimes', [])
-        app.setMessageAspect('cycleTimes', 500)
+        app.addScrolledTextArea('cycleTimes')
         app.addButton('Machine Down\nAlarm Override', press)
-        app.addLabel('sequence_number', None)
+        app.addLabel('sequence_number', Var.seq)
         app.addLabel('battingAVG', 'N/A')
         with app.labelFrame('Time'):
             app.addEmptyLabel('empty')
@@ -75,7 +74,7 @@ with app.tabbedFrame('Tabs'):
 
     # Setup tab #
     with app.tab(GUIConfig.tabs[2]):
-        with app.labelFrame('Presets', row=0, column=0):
+        with app.frame('Presets', row=0, column=0):
             app.setSticky('new')
             # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
             # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
@@ -123,12 +122,12 @@ with app.tabbedFrame('Tabs'):
                     app.addButton('%02dDNPartsper' % int(inc[i]), partsper_set, row=1, column=i + 1)
                     app.setButton('%02dUPPartsper' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNPartsper' % int(inc[i]), '-%s' % inc[i])
-        with app.labelFrame('Parameters', row=2, column=0, colspan=2):
+        with app.frame('Parameters', row=2, column=0, colspan=2):
             app.setSticky('new')
-            with app.frame('Shift', colspan=4):
-                app.addLabel('start-end', 'time-time', 0, 0)
-                app.addLabel('start-endTotal', 'Total Seconds', 0, 1)
-                # app.addLabel('start-endPercent', 'Percent', 1, 0)
+            # with app.frame('Shift', colspan=4):
+            #     app.addLabel('start-end', 'time-time', 0, 0)
+            #     app.addLabel('start-endTotal', 'Total Seconds', 0, 1)
+            #     # app.addLabel('start-endPercent', 'Percent', 1, 0)
             for block in range(1, 5):
                 with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
                     app.setSticky('new')

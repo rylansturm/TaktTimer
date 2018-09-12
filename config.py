@@ -6,12 +6,13 @@ basedir = "P:/Talladega Factory/Swing/Rylan Sturm/Company Takt Timer/Data"
 c = configparser.ConfigParser()
 c.read('install.ini')
 
+
 class GUIConfig(object):
     db_file             = 'app.db'
     platform            = os.sys.platform
     title               = 'Takt Timer'
     windowSize          = {'linux': 'fullscreen',
-                           'win32': '800x480'}
+                           'win32': None}
     normalFont          = 16
     smallFont           = 'arial 12'
     mediumFont          = 'arial 24'
