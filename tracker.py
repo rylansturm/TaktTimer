@@ -18,8 +18,8 @@ def shift_guesser():
         else 'Day' if datetime.datetime.now().hour >= 7 else 'Grave'
 
 
-app = gui()
-app.setFont(size=24)
+app = gui('tracker', 'fullscreen')
+app.setFont(size=20)
 
 
 def update():
@@ -37,10 +37,11 @@ def update():
         Var.length = len(Var.sequences)
         app.removeAllWidgets()
         for seq in Var.sequences:
-            with app.labelFrame('Sequence %s' % seq):
+            with app.frame('Sequence %s' % seq):
                 app.setSticky('ew')
                 app.addMeter('seq%sMeter' % seq, row=0, column=0, colspan=4)
                 app.setMeterFill('seq%sMeter' % seq, 'green')
+                app.setMeterHeight('seq%sMeter' % seq, 900/Var.length-Var.length*2)
                 app.addLabel('seq%sAVGLabel' % seq, 'Batting AVG: ', 1, 0)
                 app.addLabel('seq%sAVG' % seq, 'avg', 2, 0)
                 # app.addLabel('seq%sEarlyLateLabel' % seq, 'Early - Late', 1, 2)
@@ -51,7 +52,7 @@ def update():
         cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
         avg = '%.3f' % (len(cycle.filter(Cycles.hit == 1).all()) / len(cycle.all()))
         app.setMeter('seq%sMeter' % seq, (cycle.first().delivered / Var.kpi.demand) * 100,
-                     '%s / %s' % (cycle.first().delivered, Var.kpi.demand))
+                     'Sequence %s: %s / %s' % (seq, cycle.first().delivered, Var.kpi.demand))
         app.setLabel('seq%sAVG' % seq, avg)
     session.close()
 
