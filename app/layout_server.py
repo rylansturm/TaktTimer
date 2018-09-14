@@ -25,10 +25,12 @@ with app.frame('Presets', row=0, column=0):
     app.setOptionBoxChangeFunction('Shift: ', change_schedule_box_options)
     app.setOptionBoxChangeFunction('Schedule: ', determine_time_file)
     app.setOptionBox('Shift: ', shift_guesser())
-with app.frame('buttons', row=2, column=0):
+with app.frame('info', row=2, column=0):
     app.setBg(GUIConfig.appBgColor)
-    app.addButton('Set', set_kpi, row=3, column=0, colspan=2)
-    app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
+    # app.addButton('Set', set_kpi, row=3, column=0, colspan=2)
+    # app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
+    app.addLabel('totalTimeLabel', 'Total Available Time', row=3, column=1)
+    app.addLabel('totalTime', Var.available_time)
     app.addLabel('taktLabel2', 'Takt', row=3, column=2)
     app.addLabel('takt2', 0, row=4, column=2)
 with app.labelFrame('Demand', row=1, column=0):
@@ -61,7 +63,7 @@ with app.frame('Parameters', row=0, column=1, rowspan=3):
             app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
             # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
 print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.time_open).total_seconds())
-read_time_file()
+read_time_file(shift=Var.shift, name=Var.sched.name)
 
 with app.subWindow('New Schedule', modal=True, transient=True):
     app.addLabel('saveDialog', 'Save New Schedule', row=0, column=0, colspan=5)

@@ -60,6 +60,11 @@ class Schedule(Base):
         self.end5, self.end6, self.end7, self.end8 = e5, e6, e7, e8
         self.get_available_time()
 
+    def return_times(self):
+        return (self.start1, self.end1, self.start2, self.end2, self.start3, self.end3,
+                self.start4, self.end4, self.start5, self.end5, self.start6, self.end6,
+                self.start7, self.end7, self.start8, self.end8)
+
     def __repr__(self):
         return "<Schedule Object '%s' for %s shift>" % (self.name, self.shift)
 

@@ -12,21 +12,22 @@ c.read('install.ini')
 
 
 class Var:
+    session = create_session()
     db_file = 'app.db'
-    db_poll_count = 45
+    db_poll_count = 15
     time_open = datetime.datetime.now()
     now = datetime.datetime.now()
     mark = datetime.datetime.now()
     block = 0
     sched = timedata.TimeData()
-    started = False
-    available_time = 23100
-    demand = 360
+    started = True
+    available_time = sum(sched.blockSeconds)
+    demand = 312
     shift = 'Day'
-    takt = 64.17
+    takt = 74
     tct = int(takt)
     tCycle = 0
-    partsper = 1
+    partsper = int(c['Var']['partsper'])
     sequence_time = int(tct * partsper)
     parts_delivered = 0
     andon = False
@@ -40,15 +41,18 @@ class Var:
     last_cycle = 0
     times_list = []
     seq = 1
+    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),\
+                                                KPI.shift == 'Day').first()
     kpi_id = None
     ahead = True
-    edited = False
+    schedule_edited = False
     schedule_option_list = []
     breaktime = True
+    session.close()
 
 
 def counting_worker():
-    print('Counting %s/50' % Var.db_poll_count)
+    # print('Counting %s/50' % Var.db_poll_count)
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
     app.setLabel('block', Var.block)
@@ -70,19 +74,24 @@ def counting_worker():
     elif Var.tCycle != GUIConfig.appBgColor and Var.tCycle > window:
         app.setLabelBg('tCycle', GUIConfig.appBgColor)
     Var.db_poll_count += 1
-    if Var.db_poll_count == 50:
+    if Var.db_poll_count == 20:
         session = create_session()
         try:
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                             KPI.d == datetime.date.today()).one()
-            Var.kpi_id = kpi.id
             if c['Install']['type'] == 'Worker':
                 if Var.shift != kpi.shift or \
                         Var.sched.name != kpi.schedule.name or\
-                        Var.demand != kpi.demand:
+                        Var.demand != kpi.demand or\
+                        Var.kpi_id != kpi.id or\
+                        Var.available_time != kpi.schedule.available_time:
+                    print(Var.available_time)
                     Var.shift = kpi.shift
-                    Var.sched = timedata.TimeData(shift=kpi.shift, name=kpi.schedule.name)
+                    read_time_file(shift=Var.shift, name=kpi.schedule.name)
                     Var.demand = kpi.demand
+                    Var.kpi_id = kpi.id
+                    Var.available_time = Var.sched.available_time
+                    print(Var.available_time)
                     recalculate()
                     Var.started = True
         except:
@@ -94,6 +103,28 @@ def counting_worker():
 def counting_server():
     app.setLabel('timestamp',
                  datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
+    app.setEntry('demand', Var.demand)
+    app.setLabel('totalTime', Var.available_time)
+    if Var.kpi_id is None:
+        session = create_session()
+        try:
+            Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),\
+                                                KPI.shift == shift_guesser()).first()
+            Var.kpi_id = Var.kpi.id
+            Var.demand = Var.kpi.demand
+            recalculate()
+        except:
+            Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
+                          demand=24, schedule=session.query(Schedule).filter(
+                    Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
+            Var.demand = Var.kpi.demand
+            session.add(Var.kpi)
+            session.commit()
+            Var.kpi_id = Var.kpi.id
+            recalculate()
+        Var.available_time = Var.kpi.schedule.available_time
+        app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
+        session.close()
 
 
 def cycle():
@@ -134,9 +165,12 @@ def data_log():
     if Var.kpi_id:
         new_cycle.kpi_id = Var.kpi_id
     else:
-        new_cycle.kpi_id = session.query(KPI).filter(KPI.date == datetime.date.today(),
-                                                     KPI.shift == shift_guesser()).one().id
-        Var.kpi_id = new_cycle.kpi
+        try:
+            new_cycle.kpi_id = session.query(KPI).filter(KPI.d == datetime.date.today(),
+                                                         KPI.shift == shift_guesser()).one().id
+        except:
+            pass
+        Var.kpi = new_cycle.kpi
     session.add(new_cycle)
     session.commit()
     session.close()
@@ -193,6 +227,13 @@ def demand_set(btn):
     demand = int(app.getEntry('demand'))
     demand += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
     demand = (1 if demand < 1 else demand)
+    session = create_session()
+    kpi = Var.kpi
+    kpi.demand = demand
+    session.add(kpi)
+    session.commit()
+    session.close()
+    Var.demand = demand
     app.setEntry('demand', demand)
     recalculate()
 
@@ -203,6 +244,9 @@ def partsper_set(btn):
     partsper = (1 if partsper < 1 else partsper)
     app.setEntry('partsper', partsper)
     Var.partsper = partsper
+    c['Var']['partsper'] = str(partsper)
+    with open('install.ini', 'w') as configfile:
+        c.write(configfile)
     recalculate()
 
 
@@ -284,6 +328,7 @@ def recalculate():
         print('skipping certain labels belonging to Worker')
     try:
         app.setLabel('takt2', countdown_format(int(Var.takt)))
+        app.setEntry('demand', Var.demand)
     except Exception:
         print('skipping certain labels belonging to Server')
 
@@ -329,8 +374,7 @@ def enable_parts_out():
 
 
 def shift_guesser():
-    return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
-        else 'Day' if Var.now.hour >= 7 else 'Grave'
+    return 'Grave' if Var.now.hour >= 18 else 'Day' if Var.now.hour >= 6 else 'Grave'
 
 
 Var.shift = shift_guesser()
@@ -346,26 +390,55 @@ def countdown_format(seconds: int):
 
 
 def shift_adjust(btn):
-    Var.edited = True
+    Var.schedule_edited = True
     app.setOptionBox('Schedule: ', 'Custom', callFunction=False)
-    block_index = int(btn[7:])-1
-    change_list = Var.sched.available if btn[:5] == 'start' else Var.sched.breaks
-    direction = btn[5:7]
+    session = create_session()
+    old_schedule = session.query(Schedule).filter(Schedule.id == Var.sched.id).first()
+    try:
+        new_schedule = session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: '),
+                                                      Schedule.name == 'Custom').one()
+    except:
+        new_schedule = Schedule(name='Custom', shift=app.getOptionBox('Shift: '))
+    new_schedule.get_times(*old_schedule.return_times())
+    e = len(btn)
+    block = int(btn[e-1])
+    change_list = new_schedule.return_times()
+    direction = btn[e-3:e-1]
+    index = (2 * (block - 1)) if btn[:e-3] == 'start' else ((2 * block) - 1)
     increment = GUIConfig.schedule_increment
-    change_list[block_index] += increment if direction == 'UP' else -increment
-    app.setLabel('block%s' % str(block_index + 1), '%s\n%s' % (Var.sched.available[block_index].strftime('%I:%M %p'),
-                                                                  Var.sched.breaks[block_index].strftime('%I:%M %p')))
+    for b in range(1, 9):
+        if b == block:
+            old_time = change_list[index]
+            exec('new_schedule.' + btn[:e-3] + btn[e-1] + " = datetime.datetime.time(datetime.datetime.combine"
+                                                          "(datetime.date.today(), old_time)"
+                                                          " + (increment if direction == 'UP' else -increment))")
+    new_schedule.get_available_time()
+    session.add(new_schedule)
+    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+                                    KPI.shift == shift_guesser()).one()
+    kpi.schedule = new_schedule
+    Var.kpi = kpi
+    session.add(kpi)
+    session.commit()
+    session.close()
+    read_time_file(shift=shift_guesser(), name='Custom')
+    app.setLabel('block%s' % block, '%s\n%s' % (Var.sched.available[block-1].strftime('%I:%M %p'),
+                                                Var.sched.breaks[block-1].strftime('%I:%M %p')))
     Var.sched.get_sched()
     Var.sched.get_block_seconds()
     Var.sched.get_break_seconds()
-    app.setLabel('block%sTotal' % str(block_index+1), str(Var.sched.blockSeconds[block_index]) + '\nSeconds')
+    app.setLabel('block%sTotal' % str(block), str(Var.sched.blockSeconds[block-1]) + '\nSeconds')
+    Var.available_time = sum(Var.sched.blockSeconds)
+    Var.takt = int(Var.available_time / Var.demand)
+    app.setLabel('totalTime', Var.available_time)
+    app.setLabel('takt2', countdown_format(Var.takt))
 
 
 def set_kpi(btn):
     if int(app.getEntry('demand')) == 0:
         app.warningBox('No Demand', 'No demand was entered.')
     else:
-        if Var.edited:
+        if Var.schedule_edited:
             app.showSubWindow('New Schedule')
         else:
             Var.mark = datetime.datetime.now()
@@ -384,23 +457,30 @@ def set_kpi(btn):
 
 
 def change_schedule_box_options():
-    Var.edited = False
+    Var.schedule_edited = False
     session = create_session()
     options = session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: '))
     Var.schedule_option_list = []
     for sched in options:
         Var.schedule_option_list.append(sched.name)
-    app.changeOptionBox('Schedule: ', Var.schedule_option_list + ['', 'Custom'])
+    if 'Custom' not in Var.schedule_option_list:
+        Var.schedule_option_list.append('Custom')
+    app.changeOptionBox('Schedule: ', Var.schedule_option_list)
     session.close()
 
 
 def determine_time_file():
-    if app.getOptionBox('Schedule: ') in Var.schedule_option_list:
-        read_time_file()
-        Var.edited = False
-    else:
-        read_time_file(shift=app.getOptionBox('Shift: '), name='Regular')
-        Var.edited = True
+    sched = app.getOptionBox('Schedule: ')
+    shift = app.getOptionBox('Shift: ')
+    read_time_file()
+    Var.schedule_edited = False
+    session = create_session()
+    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+                                    KPI.shift == shift).one()
+    kpi.schedule = session.query(Schedule).filter(Schedule.name == sched, Schedule.shift == shift).one()
+    session.add(kpi)
+    session.commit()
+    session.close()
 
 
 def read_time_file(shift=None, name=None):
@@ -430,7 +510,7 @@ def read_time_file(shift=None, name=None):
             for label in ['block%s' % block, 'block%sTotal' % block]:
                 app.removeLabel(label)
             for button in ['startUP%s' % block, 'startDN%s' % block,
-                           'endedUP%s' % block, 'endedDN%s' % block]:
+                           'endUP%s' % block, 'endDN%s' % block]:
                 app.removeButton(button)
             app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
             print('removing block %s labels' % block)
@@ -453,8 +533,8 @@ def read_time_file(shift=None, name=None):
             # percent = block_time/sum(sched.blockSeconds)
             buttons = {'startUP%s' % block: [shift_adjust, 0, 2],
                        'startDN%s' % block: [shift_adjust, 0, 0],
-                       'endedUP%s' % block: [shift_adjust, 1, 2],
-                       'endedDN%s' % block: [shift_adjust, 1, 0],
+                       'endUP%s' % block: [shift_adjust, 1, 2],
+                       'endDN%s' % block: [shift_adjust, 1, 0],
                        }
             d = {'block%s' % block:         ['%s\n%s' % (start.strftime('%I:%M %p'), end.strftime('%I:%M %p')), 0, 1, 2],
                  'block%sTotal' % block:    ['%s\nSeconds' % block_time, 0, 3, 2],
@@ -462,10 +542,12 @@ def read_time_file(shift=None, name=None):
                  }
             for label in d:
                 app.addLabel(title=label, text=d[label][0], row=d[label][1], column=d[label][2], rowspan=d[label][3])
-            for button in buttons:
-                app.addButton(title=button, func=buttons[button][0],
-                              row=buttons[button][1], column=buttons[button][2])
-                app.setButton(button, '+' if button[5:7] == 'UP' else '-')
+            if c['Install']['type'] == 'Server':
+                for button in buttons:
+                    e = len(button)
+                    app.addButton(title=button, func=buttons[button][0],
+                                  row=buttons[button][1], column=buttons[button][2])
+                    app.setButton(button, '+' if button[e-3:e-1] == 'UP' else '-')
     app.stopFrame()
     Var.mark = datetime.datetime.now()
     print('finished with app.function.read_time_file')

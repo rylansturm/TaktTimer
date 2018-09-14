@@ -21,7 +21,7 @@ class TimeData:
     def __init__(self, shift: str='Day', name: str='Regular'):
         print('initializing TimeData object')
         session = create_session()
-        s = session.query(Schedule).filter(Schedule.shift == shift, Schedule.name == name).first()
+        s = session.query(Schedule).filter(Schedule.shift == shift, Schedule.name == name).one()
         # self.start = convert(c['Shift']['start'])
         # self.end = convert(c['Shift']['end'])
         self.id = s.id
@@ -50,6 +50,7 @@ class TimeData:
         self.blockSeconds = []
         for i in range(int(len(self.sched)/2)):
             self.blockSeconds.append(get_seconds(self.sched[i * 2], self.sched[i * 2 + 1]))
+        self.available_time = sum(self.blockSeconds)
         self.breakSeconds = []
         for i in range(int(len(self.sched)/2 - 1)):
             self.breakSeconds.append(get_seconds(self.sched[i * 2 + 1], self.sched[i * 2 + 2]))

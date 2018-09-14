@@ -64,79 +64,55 @@ with app.tabbedFrame('Tabs'):
 
     # DATA tab #
     with app.tab(GUIConfig.tabs[1]):
-        app.addScrolledTextArea('cycleTimes')
-        app.addButton('Machine Down\nAlarm Override', press)
-        app.addLabel('sequence_number', Var.seq)
-        app.addLabel('battingAVG', 'N/A')
-        with app.labelFrame('Time'):
-            app.addEmptyLabel('empty')
-            app.addLabel('block', Var.block)
+        with app.frame('Presets', row=0, column=0):
+            app.setSticky('new')
+            app.setBg(GUIConfig.appBgColor)
+            app.addLabel('timestamp',
+                         datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"),
+                         row=0, column=0, colspan=2)
+            # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
+            # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
+            app.addLabel('Shift: ', Var.shift, row=1, column=0)
+            app.addLabel('Schedule: ', Var.sched.name, row=2, column=0)
+            app.addLabel('block', Var.block, row=1, column=1)
+            app.addLabel('battingAVG', 0, row=2, column=1)
+            # app.setOptionBoxChangeFunction('Shift: ', change_schedule_box_options)
+            # app.setOptionBoxChangeFunction('Schedule: ', determine_time_file)
+            # app.setOptionBox('Shift: ', shift_guesser())
+        with app.frame('buttons', row=2, column=0):
+            app.addScrolledTextArea('cycleTimes')
+        with app.labelFrame('Partsper', row=1, column=0):
+            app.setBg(GUIConfig.appBgColor)
+            app.setSticky('w')
+            app.addLabelNumericEntry('partsper', row=0, column=0, colspan=2)
+            app.setEntry('partsper', Var.partsper)
+            app.setLabel('partsper', 'Parts per\nCycle: ')
+            with app.labelFrame('partsperIncrementFrame', row=0, column=2, rowspan=2, hideTitle=True):
+                app.setSticky('ew')
+                app.setBg(GUIConfig.appBgColor)
+                inc = GUIVar.partsperIncrements
+                for i in range(len(inc)):
+                    app.addButton('%02dUPDemand' % int(inc[i]), partsper_set, row=0, column=i + 1)
+                    app.addButton('%02dDNDemand' % int(inc[i]), partsper_set, row=1, column=i + 1)
+                    app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
+                    app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
+        with app.frame('Parameters', row=0, column=1, rowspan=3):
+            app.setSticky('new')
+            app.setBg(GUIConfig.appBgColor)
+            # with app.frame('Shift', colspan=4):
+            #     app.addLabel('start-end', 'time-time', 0, 0)
+            #     app.addLabel('start-endTotal', 'Total Seconds', 0, 1)
+            #     # app.addLabel('start-endPercent', 'Percent', 1, 0)
+            for block in range(1, 5):
+                with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block - 1):
+                    app.setSticky('new')
+                    app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
+                    app.addLabel('block%s' % block, 'time-time', 0, 0)
+                    app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
+                    # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
 
-    print('%s seconds to setup tab' % (datetime.datetime.now()-Var.time_open).total_seconds())
 
-    # # Setup tab #
-    # with app.tab(GUIConfig.tabs[2]):
-    #     with app.frame('Presets', row=0, column=0):
-    #         app.setSticky('new')
-    #         # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
-    #         # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
-    #         app.addOptionBox('Shift: ', GUIVar.shifts)
-    #         app.setOptionBox('Shift: ', shift_guesser())
-    #         app.addOptionBox('Schedule: ', GUIVar.scheduleTypes)
-    #         for box in ['Shift: ', 'Schedule: ']:
-    #             # app.disableOptionBox(box)
-    #             app.setOptionBoxChangeFunction(box, read_time_file)
-    #     with app.frame('buttons', row=1, column=0):
-    #         app.addButton('Go', press, row=3, column=0, colspan=2)
-    #         # app.disableButton('Go')
-    #         app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
-    #         app.addLabel('taktLabel2', 'Takt', row=3, column=2)
-    #         app.addLabel('takt2', 0, row=4, column=2)
-    #     with app.labelFrame('Variables', row=0, column=1, rowspan=2):
-    #         app.setSticky('w')
-    #         app.addLabelNumericEntry('demand', row=0, column=0, colspan=2)
-    #         app.setEntry('demand', 0)
-    #         app.setLabel('demand', 'Demand: ')
-    #         app.addCheckBox('Parts Out', row=3, column=0)
-    #         app.setCheckBoxChangeFunction('Parts Out', enable_parts_out)
-    #         app.addSpinBox('Parts Delivered', list(range(GUIConfig.max_parts_delivered, -1, -1)), row=3, column=1)
-    #         app.setSpinBox('Parts Delivered', 0)
-    #         app.addButton('Set', press, row=3, column=2)
-    #         # app.disableLabel('Parts Delivered')
-    #         app.disableSpinBox('Parts Delivered')
-    #         app.disableButton('Set')
-    #         with app.labelFrame('demandIncrementFrame', row=0, column=2, rowspan=2, hideTitle=True):
-    #             app.setSticky('ew')
-    #             inc = GUIVar.demandIncrements
-    #             for i in range(len(inc)):
-    #                 app.addButton('%02dUPDemand' % int(inc[i]), demand_set, row=0, column=i + 1)
-    #                 app.addButton('%02dDNDemand' % int(inc[i]), demand_set, row=1, column=i + 1)
-    #                 app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
-    #                 app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
-    #         app.addLabelEntry('partsper', row=2, column=0, colspan=2)
-    #         app.setEntry('partsper', 1)
-    #         app.setLabel('partsper', 'Parts \nper cycle: ')
-    #         with app.labelFrame('partsperIncrementFrame', row=2, column=2, hideTitle=True):
-    #             app.setSticky('new')
-    #             inc = GUIVar.partsperIncrements
-    #             for i in range(len(inc)):
-    #                 app.addButton('%02dUPPartsper' % int(inc[i]), partsper_set, row=0, column=i + 1)
-    #                 app.addButton('%02dDNPartsper' % int(inc[i]), partsper_set, row=1, column=i + 1)
-    #                 app.setButton('%02dUPPartsper' % int(inc[i]), '+%s' % inc[i])
-    #                 app.setButton('%02dDNPartsper' % int(inc[i]), '-%s' % inc[i])
-    #     with app.frame('Parameters', row=2, column=0, colspan=2):
-    #         app.setSticky('new')
-    #         # with app.frame('Shift', colspan=4):
-    #         #     app.addLabel('start-end', 'time-time', 0, 0)
-    #         #     app.addLabel('start-endTotal', 'Total Seconds', 0, 1)
-    #         #     # app.addLabel('start-endPercent', 'Percent', 1, 0)
-    #         for block in range(1, 5):
-    #             with app.labelFrame('%s Block' % GUIVar.ordinalList[block], row=1, column=block-1):
-    #                 app.setSticky('new')
-    #                 app.setLabelFrameAnchor('%s Block' % GUIVar.ordinalList[block], 'n')
-    #                 app.addLabel('block%s' % block, 'time-time', 0, 0)
-    #                 app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
-    #                 # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
+read_time_file(shift=Var.shift, name=Var.sched.name)
 print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.time_open).total_seconds())
 
 for i in ['Main', 'Data']:
