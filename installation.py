@@ -26,11 +26,11 @@ def install():
     c['Var'] = {'partsper': '1'}
     if Var.install_type == 'Server':
         create_db()
-        for shift in [Grave, Day]:
+        for shift in [Grave, Day, Swing]:
             for sched in shift:
                 session = create_session()
                 s = Schedule(name=sched, shift=('Grave' if shift == Grave\
-                                                # else 'Swing' if shift == Swing\
+                                                else 'Swing' if shift == Swing\
                                                 else 'Day'))
                 ss = shift[sched]
                 s.get_times(s1=ss['start1'], s2=ss['start2'], s3=ss['start3'],
