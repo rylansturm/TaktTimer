@@ -23,7 +23,9 @@ def install():
                     'type': Var.install_type,
                     }
     c['Database'] = {'file': inst.getEntry('file')}
-    c['Var'] = {'partsper': '1'}
+    c['Var'] = {'partsper': '1',
+                'seq': '1',
+                }
     if Var.install_type == 'Server':
         create_db()
         for shift in [Grave, Day, Swing]:
