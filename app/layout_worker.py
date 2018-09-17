@@ -69,13 +69,17 @@ with app.tabbedFrame('Tabs'):
             app.setBg(GUIConfig.appBgColor)
             app.addLabel('timestamp',
                          datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"),
-                         row=0, column=0, colspan=2)
+                         row=0, column=0, rowspan=2)
             # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
             # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
-            app.addLabel('Shift: ', Var.shift, row=1, column=0)
-            app.addLabel('Schedule: ', Var.sched.name, row=2, column=0)
-            app.addLabel('block', Var.block, row=1, column=1)
-            app.addLabel('battingAVG', 0, row=2, column=1)
+            app.addLabel('Shift: ', Var.shift, row=0, column=1)
+            app.addLabel('Schedule: ', Var.sched.name + ' Schedule', row=1, column=1)
+            app.addLabel('block', Var.block, row=2, column=0)
+            app.addLabel('battingAVG', 0, row=3, column=0)
+            app.addLabel('Sequence #: Label', 'Sequence #', row=2, column=1)
+            app.addOptionBox('Sequence #: ', GUIVar.seqMenuList, row=3, column=1)
+            app.setOptionBox('Sequence #: ', int(Var.seq))
+            app.setOptionBoxChangeFunction('Sequence #: ', set_sequence_number)
             # app.setOptionBoxChangeFunction('Shift: ', change_schedule_box_options)
             # app.setOptionBoxChangeFunction('Schedule: ', determine_time_file)
             # app.setOptionBox('Shift: ', shift_guesser())
@@ -97,7 +101,7 @@ with app.tabbedFrame('Tabs'):
                     app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
         with app.frame('Parameters', row=0, column=1, rowspan=3):
-            app.setSticky('new')
+            app.setSticky('news')
             app.setBg(GUIConfig.appBgColor)
             # with app.frame('Shift', colspan=4):
             #     app.addLabel('start-end', 'time-time', 0, 0)
