@@ -1,0 +1,58 @@
+Hello, world!
+
+If you are reading this you likely already have the first few steps of this done! So congrats.
+
+For my own notes, and for those following along at home, here are the commands I entered in the
+terminal on a Raspberry Pi to get it from fresh install to Takt Timer ready.
+
+As of 9/14/2018 this list is almost certainly incomplete. Sorry. It's just my best notes so far.
+
+
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install build-essential libssl-dev libffi-dev python3-dev
+$ sudo apt-get install xscreensaver
+
+# Open xscreensaver from the gui and disable screensaver or edit ~/.xscreensaver file - "mode:  off"
+
+$ mkdir TaktTimer
+$ cd TaktTimer
+$ git init
+$ git remote add origin https://github.com/rylansturm/TaktTimer
+$ git pull origin master
+$ sudo apt-get install python-mysqldb
+
+
+IF SERVER:
+$    sudo apt-get install mysql-server
+$    # edit the mysql .cnf file found in /etc/mysql
+$    # you are looking for the "bind-address=127.0.0.1"
+$    # mine was different from the tutorial I followed, and was at /etc/mysql/mariadb.conf.d/50-server.cnf
+$    # edit "bind-address=127.0.0.1" to read "bind-address=<your.ip.address.here>"
+$    # save and close the file
+$    sudo service restart mysql
+$    mysql -u root -p
+$        >(enter the password you created)
+$        >CREATE DATABASE timers; (or area name?)
+$        # the next two lines will be needed for each user on the network
+$        # It will also be necessary to add the server pi as a user. I used the same 'worker' name for it.
+$        # privileges can be more specific, and probably should be for security, but here's a start
+$        # quotes are necessary
+$        >CREATE USER 'worker'@'<ipaddress>' IDENTIFIED BY '<password>';
+$        >GRANT ALL PRIVILEGES ON timers.* TO 'worker'@'<ipaddress>' IDENTIFIED BY '<password>';
+$        >FLUSH PRIVILEGES;
+
+As long as models.create_db() and models.create_session() both point to the Pi where you want
+the server to be located, you should be set. The installer will eventually do that for you...
+So change those two functions to have the correct ip address of the Pi that is acting as the
+server. Any Pi on the network can act as the "server" in terms of being the one that sets the
+demand and schedule, but the server in this instance must be the one that hosts the mysql database.
+
+
+if you're not still there, cd on back to ~/TaktTimer and run:
+$ python3 Timer.py
+
+Whichever computer is going to be the 'server' in terms of setting demand and schedule can be
+installed as type 'Server.' All others should be type 'Worker.'  You can edit this manually
+in the 'install.ini' file. Ignore the 'file' option in the installer if it is still there...
+it is unnecessary.
