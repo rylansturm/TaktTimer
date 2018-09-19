@@ -65,7 +65,7 @@ def counting():
         update()
     for seq in Var.sequences:
         cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
-        tCycle = int(floor(Var.takt - (now - cycle.d).seconds))
+        tCycle = int(floor((Var.takt * cycle.parts_per) - (now - cycle.d).seconds))
         app.setLabel('seq%sCurrent' % seq, tCycle)
 
 

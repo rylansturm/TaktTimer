@@ -31,6 +31,7 @@ class GUIConfig(object):
 class GUIVar(object):
     demandIncrements    = ['24', '1']
     partsperIncrements  = ['24', '1']
+    partsOutIncrements  = ['24', '1']
     fileMenuList        = ['Fullscreen', '-', 'Exit']
     seqMenuList         = list(range(1, 10))
     keys                = ['1', '<space>', '<F11>']

@@ -64,24 +64,28 @@ with app.tabbedFrame('Tabs'):
 
     # DATA tab #
     with app.tab(GUIConfig.tabs[1]):
-        with app.frame('Presets', row=0, column=0):
+        with app.frame('Presets', row=0, column=0, colspan=2):
             app.setSticky('new')
             app.setBg(GUIConfig.appBgColor)
             app.addLabel('timestamp',
                          datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"),
-                         row=0, column=0, colspan=2)
+                         row=0, column=0, rowspan=2)
             # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
             # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
-            app.addLabel('Shift: ', Var.shift, row=1, column=0)
-            app.addLabel('Schedule: ', Var.sched.name, row=2, column=0)
-            app.addLabel('block', Var.block, row=1, column=1)
-            app.addLabel('battingAVG', 0, row=2, column=1)
+            app.addLabel('Shift: ', Var.shift, row=0, column=1)
+            app.addLabel('Schedule: ', Var.sched.name + ' Schedule', row=1, column=1)
+            app.addLabel('block', Var.block, row=2, column=0)
+            app.addLabel('battingAVG', 0, row=3, column=0)
+            app.addLabel('Sequence #: Label', 'Sequence #', row=2, column=1)
+            app.addOptionBox('Sequence #: ', GUIVar.seqMenuList, row=3, column=1)
+            app.setOptionBox('Sequence #: ', int(Var.seq)-1)
+            app.setOptionBoxChangeFunction('Sequence #: ', set_sequence_number)
             # app.setOptionBoxChangeFunction('Shift: ', change_schedule_box_options)
             # app.setOptionBoxChangeFunction('Schedule: ', determine_time_file)
             # app.setOptionBox('Shift: ', shift_guesser())
-        with app.frame('buttons', row=2, column=0):
+        with app.frame('buttons', row=2, column=1):
             app.addScrolledTextArea('cycleTimes')
-        with app.labelFrame('Partsper', row=1, column=0):
+        with app.labelFrame('Partsper', row=1, column=0, hideTitle=True, colspan=2):
             app.setBg(GUIConfig.appBgColor)
             app.setSticky('w')
             app.addLabelNumericEntry('partsper', row=0, column=0, colspan=2)
@@ -92,12 +96,27 @@ with app.tabbedFrame('Tabs'):
                 app.setBg(GUIConfig.appBgColor)
                 inc = GUIVar.partsperIncrements
                 for i in range(len(inc)):
-                    app.addButton('%02dUPDemand' % int(inc[i]), partsper_set, row=0, column=i + 1)
-                    app.addButton('%02dDNDemand' % int(inc[i]), partsper_set, row=1, column=i + 1)
-                    app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
-                    app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
-        with app.frame('Parameters', row=0, column=1, rowspan=3):
-            app.setSticky('new')
+                    app.addButton('%02dUPPartsper' % int(inc[i]), partsper_set, row=0, column=i + 1)
+                    app.addButton('%02dDNPartsper' % int(inc[i]), partsper_set, row=1, column=i + 1)
+                    app.setButton('%02dUPPartsper' % int(inc[i]), '+%s' % inc[i])
+                    app.setButton('%02dDNPartsper' % int(inc[i]), '-%s' % inc[i])
+        with app.labelFrame('partsOutFrame', row=2, column=0, hideTitle=True):
+            app.setBg(GUIConfig.appBgColor)
+            app.setSticky('ew')
+            app.addLabelNumericEntry('partsOut', row=0, column=0, colspan=2)
+            app.setEntry('partsOut', Var.parts_delivered)
+            app.setLabel('partsOut', 'Parts\n Out:')
+            with app.labelFrame('partsOutIncrementFrame', row=0, column=2, rowspan=2, hideTitle=True):
+                app.setSticky('ew')
+                app.setBg(GUIConfig.appBgColor)
+                inc = GUIVar.partsOutIncrements
+                for i in range(len(inc)):
+                    app.addButton('%02dUPPartsOut' % int(inc[i]), parts_out_set, row=0, column=i + 1)
+                    app.addButton('%02dDNPartsOut' % int(inc[i]), parts_out_set, row=1, column=i + 1)
+                    app.setButton('%02dUPPartsOut' % int(inc[i]), '+%s' % inc[i])
+                    app.setButton('%02dDNPartsOut' % int(inc[i]), '-%s' % inc[i])
+        with app.frame('Parameters', row=0, column=2, rowspan=4):
+            app.setSticky('news')
             app.setBg(GUIConfig.appBgColor)
             # with app.frame('Shift', colspan=4):
             #     app.addLabel('start-end', 'time-time', 0, 0)

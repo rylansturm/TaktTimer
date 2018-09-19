@@ -40,9 +40,9 @@ class Var:
     batting_avg = 0.0
     last_cycle = 0
     times_list = []
-    seq = 1
-    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),\
-                                                KPI.shift == 'Day').first()
+    seq = int(c['Var']['seq'])
+    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+                                    KPI.shift == 'Day').first()
     kpi_id = None
     ahead = True
     schedule_edited = False
@@ -52,14 +52,17 @@ class Var:
 
 
 def counting_worker():
+    app.setLabel('timestamp',
+                 datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
     # print('Counting %s/50' % Var.db_poll_count)
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
-    app.setLabel('block', Var.block)
+    app.setLabel('block', 'Block ' + str(Var.block) if Var.block != 0 else 'Break')
     if not Var.breaktime and Var.block == 0:
         Var.breaktime = True
-        break_seconds = Var.sched.breakSeconds[get_block_var() // 2]
-        Var.mark += datetime.timedelta(seconds=break_seconds)
+        if 0 < get_block_var() < len(Var.sched.sched):
+            break_seconds = Var.sched.breakSeconds[(get_block_var() // 2) - 1]
+            Var.mark += datetime.timedelta(seconds=break_seconds)
     elif Var.breaktime and Var.block != 0:
         Var.breaktime = False
     label_update()
@@ -67,11 +70,11 @@ def counting_worker():
         Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))
         app.setLabel('tCycle', countdown_format(Var.tCycle))
     window = GUIVar.target_window * Var.partsper
-    if Var.tCycle != GUIConfig.targetColor and -window <= Var.tCycle <= window:
+    if app.getLabelBg('tCycle') != GUIConfig.targetColor and -window <= Var.tCycle <= window:
         app.setLabelBg('tCycle', GUIConfig.targetColor)
-    elif Var.tCycle != GUIConfig.andonColor and Var.tCycle < -window:
+    elif app.getLabelBg('tCycle') != GUIConfig.andonColor and Var.tCycle < -window:
         app.setLabelBg('tCycle', GUIConfig.andonColor)
-    elif Var.tCycle != GUIConfig.appBgColor and Var.tCycle > window:
+    elif app.getLabelBg('tCycle') != GUIConfig.appBgColor and Var.tCycle > window:
         app.setLabelBg('tCycle', GUIConfig.appBgColor)
     Var.db_poll_count += 1
     if Var.db_poll_count == 20:
@@ -79,6 +82,7 @@ def counting_worker():
         try:
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                             KPI.d == datetime.date.today()).one()
+            seq = session.query(Cycles.seq).filter(Cycles.kpi == kpi).all()
             if c['Install']['type'] == 'Worker':
                 if Var.shift != kpi.shift or \
                         Var.sched.name != kpi.schedule.name or\
@@ -94,6 +98,13 @@ def counting_worker():
                     print(Var.available_time)
                     recalculate()
                     Var.started = True
+                    app.setLabel('Schedule: ', Var.sched.name + ' Schedule')
+                    if (Var.seq, ) in seq:
+                        Var.parts_delivered = session.query(Cycles.delivered).filter(
+                            Cycles.kpi == kpi, Cycles.seq == Var.seq).order_by(
+                            Cycles.d.desc()).first().delivered
+                        app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
+                                     '%s / %s Parts' % (Var.parts_delivered, Var.demand))
         except:
             print("Today's KPI is not yet available")
         Var.db_poll_count = 0
@@ -202,6 +213,7 @@ def label_update():
     app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
     app.setLabel('partsAhead', parts_ahead())
+    app.setEntry('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
     app.setLabel('leadUnverified', Var.lead_unverified)
@@ -248,6 +260,16 @@ def partsper_set(btn):
     with open('install.ini', 'w') as configfile:
         c.write(configfile)
     recalculate()
+
+
+def parts_out_set(btn):
+    parts = Var.parts_delivered
+    parts += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
+    parts = 0 if parts < 0 else parts
+    Var.parts_delivered = parts
+    app.setEntry('partsOut', Var.parts_delivered)
+    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
+                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
 
 
 def get_block_var():
@@ -346,9 +368,15 @@ def menu_press(btn):
         key_press('<F11>')
     elif btn == 'Exit':
         app.stop()
-    else:
-        Var.seq = int(btn)
-        app.setLabel('sequence_number', Var.seq)
+
+
+def set_sequence_number(option):
+    Var.seq = int(app.getOptionBox('Sequence #: '))
+    c = configparser.ConfigParser()
+    c.read('install.ini')
+    c['Var']['seq'] = str(Var.seq)
+    with open('install.ini', 'w') as configfile:
+        c.write(configfile)
 
 
 # def enable_sched_select():
@@ -506,16 +534,22 @@ def read_time_file(shift=None, name=None):
     sched = Var.sched
     print('removing old block data')
     for block in range(1, 9):
-        try:
-            for label in ['block%s' % block, 'block%sTotal' % block]:
+        for label in ['block%s' % block, 'block%sTotal' % block]:
+            try:
                 app.removeLabel(label)
-            for button in ['startUP%s' % block, 'startDN%s' % block,
-                           'endUP%s' % block, 'endDN%s' % block]:
+            except:
+                print('block %s does not exist. Ignoring command to delete labels.' % block)
+        for button in ['startUP%s' % block, 'startDN%s' % block,
+                       'endUP%s' % block, 'endDN%s' % block]:
+            try:
                 app.removeButton(button)
+            except:
+                pass
+        try:
             app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
-            print('removing block %s labels' % block)
         except:
-            print('block %s does not exist. Ignoring command to delete labels.' % block)
+            pass
+        print('removing block %s labels' % block)
     app.openFrame('Parameters')
     # start = datetime.datetime.time(sched.start).strftime('%H:%M')
     # end = datetime.datetime.time(sched.end).strftime('%H:%M')
