@@ -126,7 +126,7 @@ def counting_server():
             recalculate()
         except:
             Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
-                          demand=24, schedule=session.query(Schedule).filter(
+                          demand=12, schedule=session.query(Schedule).filter(
                     Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
             Var.demand = Var.kpi.demand
             session.add(Var.kpi)
