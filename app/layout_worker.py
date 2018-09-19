@@ -83,14 +83,14 @@ with app.tabbedFrame('Tabs'):
             # app.setOptionBoxChangeFunction('Shift: ', change_schedule_box_options)
             # app.setOptionBoxChangeFunction('Schedule: ', determine_time_file)
             # app.setOptionBox('Shift: ', shift_guesser())
-        with app.frame('buttons', row=2, column=1):
+        with app.frame('buttons', row=2, column=0, colspan=2):
             app.addScrolledTextArea('cycleTimes')
-        with app.labelFrame('Partsper', row=1, column=0, hideTitle=True, colspan=2):
+        with app.labelFrame('Parts per Cycle', row=1, column=0, colspan=1):
             app.setBg(GUIConfig.appBgColor)
-            app.setSticky('w')
-            app.addLabelNumericEntry('partsper', row=0, column=0, colspan=2)
-            app.setEntry('partsper', Var.partsper)
-            app.setLabel('partsper', 'Parts per\nCycle: ')
+            app.setSticky('ew')
+            app.addLabel('partsper', Var.partsper, row=0, column=0, colspan=2)
+            # app.setEntry('partsper', Var.partsper)
+            # app.setLabel('partsper', 'Parts per\nCycle: ')
             with app.labelFrame('partsperIncrementFrame', row=0, column=2, rowspan=2, hideTitle=True):
                 app.setSticky('ew')
                 app.setBg(GUIConfig.appBgColor)
@@ -100,11 +100,11 @@ with app.tabbedFrame('Tabs'):
                     app.addButton('%02dDNPartsper' % int(inc[i]), partsper_set, row=1, column=i + 1)
                     app.setButton('%02dUPPartsper' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNPartsper' % int(inc[i]), '-%s' % inc[i])
-        with app.labelFrame('partsOutFrame', row=2, column=0, hideTitle=True):
+        with app.labelFrame('Parts Out', row=1, column=1):
             app.setBg(GUIConfig.appBgColor)
             app.setSticky('ew')
-            app.addLabelNumericEntry('partsOut', row=0, column=0, colspan=2)
-            app.setEntry('partsOut', Var.parts_delivered)
+            app.addLabel('partsOut', row=0, column=0, colspan=2)
+            # app.setEntry('partsOut', Var.parts_delivered)
             app.setLabel('partsOut', 'Parts\n Out:')
             with app.labelFrame('partsOutIncrementFrame', row=0, column=2, rowspan=2, hideTitle=True):
                 app.setSticky('ew')
