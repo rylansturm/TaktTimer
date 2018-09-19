@@ -29,13 +29,13 @@ class GUIConfig(object):
 
 
 class GUIVar(object):
-    demandIncrements    = ['24', '1']
-    partsperIncrements  = ['24', '1']
-    partsOutIncrements  = ['24', '1']
+    demandIncrements    = ['2', '1']
+    partsperIncrements  = ['2', '1']
+    partsOutIncrements  = ['2', '1']
     fileMenuList        = ['Fullscreen', '-', 'Exit']
     seqMenuList         = list(range(1, 10))
     keys                = ['1', '<space>', '<F11>']
-    shifts              = ['Grave', 'Day', 'Swing']
+    shifts              = ['Grave', 'Day']
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',
                            'Richmond', 'Bristol', 'Sonoma', 'Texas',
                            'Atlanta', 'Fontana', 'Monaco']
