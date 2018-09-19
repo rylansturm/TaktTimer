@@ -213,7 +213,7 @@ def label_update():
     app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
     app.setLabel('partsAhead', parts_ahead())
-    app.setEntry('partsOut', Var.parts_delivered)
+    app.setLabel('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
     app.setLabel('leadUnverified', Var.lead_unverified)
@@ -251,10 +251,10 @@ def demand_set(btn):
 
 
 def partsper_set(btn):
-    partsper = int(app.getEntry('partsper'))
+    partsper = int(app.getLabel('partsper'))
     partsper += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
     partsper = (1 if partsper < 1 else partsper)
-    app.setEntry('partsper', partsper)
+    app.setLabel('partsper', partsper)
     Var.partsper = partsper
     c['Var']['partsper'] = str(partsper)
     with open('install.ini', 'w') as configfile:
@@ -267,7 +267,7 @@ def parts_out_set(btn):
     parts += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
     parts = 0 if parts < 0 else parts
     Var.parts_delivered = parts
-    app.setEntry('partsOut', Var.parts_delivered)
+    app.setLabel('partsOut', Var.parts_delivered)
     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
                  '%s / %s Parts' % (Var.parts_delivered, Var.demand))
 
