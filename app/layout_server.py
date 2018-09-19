@@ -29,10 +29,10 @@ with app.frame('info', row=2, column=0):
     app.setBg(GUIConfig.appBgColor)
     # app.addButton('Set', set_kpi, row=3, column=0, colspan=2)
     # app.addButton('Recalculate', recalculate, row=4, column=0, colspan=2)
-    app.addLabel('totalTimeLabel', 'Total Available Time', row=3, column=1)
-    app.addLabel('totalTime', Var.available_time)
-    app.addLabel('taktLabel2', 'Takt', row=3, column=2)
-    app.addLabel('takt2', 0, row=4, column=2)
+    app.addLabel('totalTimeLabel', 'Total Available Time', row=3, column=0)
+    app.addLabel('totalTime', Var.available_time, row=4, column=0)
+    app.addLabel('taktLabel2', 'Takt', row=3, column=1)
+    app.addLabel('takt2', 0, row=4, column=1)
 with app.labelFrame('Demand', row=1, column=0):
     app.setBg(GUIConfig.appBgColor)
     app.setSticky('w')
@@ -68,6 +68,6 @@ read_time_file(shift=Var.shift, name=Var.sched.name)
 with app.subWindow('New Schedule', modal=True, transient=True):
     app.addLabel('saveDialog', 'Save New Schedule', row=0, column=0, colspan=5)
     app.addEntry('newScheduleName', row=1, column=2, colspan=3)
-    app.addMessage('Fake', 'Fake Message Here',row=2, column=2, colspan=3)
+    app.addMessage('Fake', 'Fake Message Here', row=2, column=2, colspan=3)
 
 app.setBg(GUIConfig.appBgColor)

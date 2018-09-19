@@ -70,11 +70,11 @@ def counting_worker():
         Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))
         app.setLabel('tCycle', countdown_format(Var.tCycle))
     window = GUIVar.target_window * Var.partsper
-    if Var.tCycle != GUIConfig.targetColor and -window <= Var.tCycle <= window:
+    if app.getLabelBg('tCycle') != GUIConfig.targetColor and -window <= Var.tCycle <= window:
         app.setLabelBg('tCycle', GUIConfig.targetColor)
-    elif Var.tCycle != GUIConfig.andonColor and Var.tCycle < -window:
+    elif app.getLabelBg('tCycle') != GUIConfig.andonColor and Var.tCycle < -window:
         app.setLabelBg('tCycle', GUIConfig.andonColor)
-    elif Var.tCycle != GUIConfig.appBgColor and Var.tCycle > window:
+    elif app.getLabelBg('tCycle') != GUIConfig.appBgColor and Var.tCycle > window:
         app.setLabelBg('tCycle', GUIConfig.appBgColor)
     Var.db_poll_count += 1
     if Var.db_poll_count == 20:
@@ -213,6 +213,7 @@ def label_update():
     app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
     app.setLabel('partsAhead', parts_ahead())
+    app.setEntry('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
     app.setLabel('leadUnverified', Var.lead_unverified)
@@ -259,6 +260,16 @@ def partsper_set(btn):
     with open('install.ini', 'w') as configfile:
         c.write(configfile)
     recalculate()
+
+
+def parts_out_set(btn):
+    parts = Var.parts_delivered
+    parts += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
+    parts = 0 if parts < 0 else parts
+    Var.parts_delivered = parts
+    app.setEntry('partsOut', Var.parts_delivered)
+    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
+                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
 
 
 def get_block_var():
@@ -391,7 +402,7 @@ def enable_parts_out():
 
 
 def shift_guesser():
-    return 'Grave' if Var.now.hour >= 18 else 'Swing' if Var.now.hour >= 15 \
+    return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
         else 'Day' if Var.now.hour >= 7 else 'Grave'
 
 
@@ -524,16 +535,22 @@ def read_time_file(shift=None, name=None):
     sched = Var.sched
     print('removing old block data')
     for block in range(1, 9):
-        try:
-            for label in ['block%s' % block, 'block%sTotal' % block]:
+        for label in ['block%s' % block, 'block%sTotal' % block]:
+            try:
                 app.removeLabel(label)
-            for button in ['startUP%s' % block, 'startDN%s' % block,
-                           'endUP%s' % block, 'endDN%s' % block]:
+            except:
+                print('block %s does not exist. Ignoring command to delete labels.' % block)
+        for button in ['startUP%s' % block, 'startDN%s' % block,
+                       'endUP%s' % block, 'endDN%s' % block]:
+            try:
                 app.removeButton(button)
+            except:
+                pass
+        try:
             app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
-            print('removing block %s labels' % block)
         except:
-            print('block %s does not exist. Ignoring command to delete labels.' % block)
+            pass
+        print('removing block %s labels' % block)
     app.openFrame('Parameters')
     # start = datetime.datetime.time(sched.start).strftime('%H:%M')
     # end = datetime.datetime.time(sched.end).strftime('%H:%M')

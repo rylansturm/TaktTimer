@@ -31,8 +31,8 @@ def install():
         for shift in [Grave, Day, Swing]:
             for sched in shift:
                 session = create_session()
-                s = Schedule(name=sched, shift=('Grave' if shift == Grave\
-                                                else 'Swing' if shift == Swing\
+                s = Schedule(name=sched, shift=('Grave' if shift == Grave
+                                                else 'Swing' if shift == Swing
                                                 else 'Day'))
                 ss = shift[sched]
                 s.get_times(s1=ss['start1'], s2=ss['start2'], s3=ss['start3'],
