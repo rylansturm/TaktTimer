@@ -22,10 +22,16 @@ def install():
     c['Install'] = {'date': str(datetime.date.today()),
                     'type': Var.install_type,
                     }
-    c['Database'] = {'file': inst.getEntry('file')}
+    c['Database'] = {'name': inst.getEntry('name'),
+                     'password': inst.getEntry('password'),
+                     'server': inst.getEntry('server'),
+                     'area': inst.getEntry('area'),
+                     }
     c['Var'] = {'partsper': '1',
                 'seq': '1',
                 }
+    with open(file, 'w') as configfile:
+        c.write(configfile)
     if Var.install_type == 'Server':
         create_db()
         for shift in [Grave, Day, Swing]:
@@ -43,13 +49,7 @@ def install():
                             e8=ss['end8'],)
                 session.add(s)
                 session.commit()
-    with open(file, 'w') as configfile:
-        c.write(configfile)
     inst.stop()
-
-
-def file_picker():
-    inst.setEntry('file', inst.saveBox('save', fileExt='.db'))
 
 
 inst = gui('TaktTimer Installer', GUIConfig.windowSize[GUIConfig.platform])
@@ -61,8 +61,16 @@ with inst.pagedWindow('Pages'):
         inst.addMessage('Installer1', 'First, what type of install will this be?')
         inst.addOptionBox('type', ['-Select-', 'Server', 'Worker'])
         inst.setOptionBoxChangeFunction('type', set_type)
-    with inst.page(sticky='n'):
-        inst.addMessage('Installer2', 'Second, where will the data be stored?')
-        inst.addEntry('file', row=1, column=0)
-        inst.addButton('select', file_picker)
-        inst.addButton('Install', install)
+    with inst.page(sticky='e'):
+        with inst.frame('Installer2Frame'):
+            inst.setSticky('new')
+            inst.addMessage('Installer2', 'Second, how does this machine connect to the database?')
+            inst.addLabelEntry('name')
+            inst.addLabelEntry('password')
+            inst.addLabelEntry('server')
+            inst.addLabelEntry('area')
+            inst.setEntry('name', 'worker')
+            inst.setEntry('password', 'password')
+            inst.setEntry('server', '192.168.43.1')
+            inst.setFocus('area')
+            inst.addButton('Install', install)

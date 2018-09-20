@@ -119,7 +119,7 @@ def counting_server():
     if Var.kpi_id is None:
         session = create_session()
         try:
-            Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),\
+            Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
                                                 KPI.shift == shift_guesser()).first()
             Var.kpi_id = Var.kpi.id
             Var.demand = Var.kpi.demand

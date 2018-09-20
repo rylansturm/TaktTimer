@@ -4,6 +4,9 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
 import datetime
 from config import GUIConfig
+import configparser
+c = configparser.ConfigParser()
+c.read('install.ini')
 
 Base = declarative_base()
 
@@ -100,19 +103,25 @@ class Cycles(Base):
 
 
 def create_db():
+    ref = c['Database']
     if GUIConfig.platform == 'win32':
         engine = create_engine('sqlite:///app.db')
     else:
-        engine = create_engine('mysql+pymysql://worker:password@192.168.43.1/timers')
+        engine = create_engine('mysql+pymysql://%s:%s@%s/%s'
+                               % (ref['name'], ref['password'], ref['server'], ref['area']))
     Base.metadata.create_all(engine)
 
 
 def create_session():
     """ returns a db session for the given database file """
+    c = configparser.ConfigParser()
+    c.read('install.ini')
+    ref = c['Database']
     if GUIConfig.platform == 'win32':
         engine = create_engine('sqlite:///app.db')
     else:
-        engine = create_engine('mysql+pymysql://worker:password@192.168.43.1/timers')
+        engine = create_engine('mysql+pymysql://%s:%s@%s/%s'
+                               % (ref['name'], ref['password'], ref['server'], ref['area']))
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
