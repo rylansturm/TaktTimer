@@ -33,7 +33,7 @@ class GUIVar(object):
     partsperIncrements  = ['1']
     partsOutIncrements  = ['1']
     fileMenuList        = ['Fullscreen', '-', 'Exit']
-    seqMenuList         = list(range(1, 10))
+    seqMenuList         = list(range(1, 4))
     keys                = ['1', '<space>', '<F11>']
     shifts              = ['Grave', 'Day']
     areas               = ['Talladega', 'Charlotte', 'Indy', 'Brickyard',
