@@ -14,8 +14,8 @@ class Var:
 
 
 def shift_guesser():
-    return 'Grave' if datetime.datetime.now().hour >= 23 else 'Swing' if datetime.datetime.now().hour >= 15 \
-        else 'Day' if datetime.datetime.now().hour >= 7 else 'Grave'
+    return 'Grave' if datetime.datetime.now().hour >= 18 \
+        else 'Day' if datetime.datetime.now().hour >= 6 else 'Grave'
 
 
 app = gui('tracker', 'fullscreen')

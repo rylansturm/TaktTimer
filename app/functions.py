@@ -402,8 +402,7 @@ def enable_parts_out():
 
 
 def shift_guesser():
-    return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
-        else 'Day' if Var.now.hour >= 7 else 'Grave'
+    return 'Grave' if Var.now.hour >= 18 else 'Day' if Var.now.hour >= 6 else 'Grave'
 
 
 Var.shift = shift_guesser()

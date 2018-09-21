@@ -34,12 +34,10 @@ def install():
         c.write(configfile)
     if Var.install_type == 'Server':
         create_db()
-        for shift in [Grave, Day, Swing]:
+        for shift in [Grave, Day]:
             for sched in shift:
                 session = create_session()
-                s = Schedule(name=sched, shift=('Grave' if shift == Grave
-                                                else 'Swing' if shift == Swing
-                                                else 'Day'))
+                s = Schedule(name=sched, shift=('Grave' if shift == Grave else 'Day'))
                 ss = shift[sched]
                 s.get_times(s1=ss['start1'], s2=ss['start2'], s3=ss['start3'],
                             s4=ss['start4'], s5=ss['start5'], s6=ss['start6'],
