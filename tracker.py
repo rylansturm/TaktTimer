@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/home/pi/venv/Lib/site-packages')
 from models import *
 from appJar import gui
 import datetime

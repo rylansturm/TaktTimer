@@ -2,7 +2,7 @@ import os
 import sys
 import datetime
 import configparser
-sys.path.insert(0, 'venv/Lib/site-packages')
+sys.path.insert(0, '/home/pi/venv/Lib/site-packages')
 
 while True:
     if os.path.exists('install.ini'):
