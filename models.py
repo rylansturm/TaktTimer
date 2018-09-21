@@ -103,6 +103,8 @@ class Cycles(Base):
 
 
 def create_db():
+    c = configparser.ConfigParser()
+    c.read('install.ini')
     ref = c['Database']
     if GUIConfig.platform == 'win32':
         engine = create_engine('sqlite:///app.db')
