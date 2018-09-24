@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Time, Date, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import create_engine
 import datetime
 from config import GUIConfig
