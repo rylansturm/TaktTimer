@@ -9,7 +9,9 @@ app.addMenuList('File', GUIVar.fileMenuList, menu_press)
 
 print('creating tabs for server')
 app.addOptionBox('area', list(area.capitalize() for area in c['Areas'].values()))
+app.setOptionBox('area', c['Database']['area'].capitalize())
 app.setOptionBoxChangeFunction('area', area_set)
+
 # Tabbed Frame that holds the whole GUI #
 with app.tabbedFrame('Tabs'):
 
