@@ -59,7 +59,7 @@ with inst.pagedWindow('Pages'):
         inst.addMessage('Installer0', 'Welcome to the Installer!')
     with inst.page(sticky='n'):
         inst.addMessage('Installer1', 'First, what type of install will this be?')
-        inst.addOptionBox('type', ['-Select-', 'Server', 'Worker'])
+        inst.addOptionBox('type', ['-Select-', 'Server', 'Team Lead', 'Worker'])
         inst.setOptionBoxChangeFunction('type', set_type)
     with inst.page(sticky='n'):
         inst.addMessage('Installer2', 'Second, where will the data be stored?')
