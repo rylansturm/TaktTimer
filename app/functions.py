@@ -5,6 +5,7 @@ import datetime
 from math import floor
 import os
 from models import *
+from appJar.appjar import ItemLookupError
 
 
 c = configparser.ConfigParser()
@@ -48,6 +49,9 @@ class Var:
     schedule_edited = False
     schedule_option_list = []
     breaktime = True
+    sequences = [1, 2, 3]
+    cycles = None
+    num_of_seqs = 3
     session.close()
 
 
@@ -133,9 +137,41 @@ def counting_server():
             session.commit()
             Var.kpi_id = Var.kpi.id
             recalculate()
+        Var.cycles = session.query(Cycles).filter(Cycles.kpi_id == Var.kpi.id)
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
         session.close()
+    Var.db_poll_count += 1
+    if Var.db_poll_count == 20:
+        Var.db_poll_count = 0
+        tracker_update()
+    for seq in Var.sequences:
+        cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
+        if len(cycle.all()) != 0:
+            avg = '%.3f' % (len(cycle.filter(Cycles.hit == 1).all()) / len(cycle.all()))
+            app.setMeter('seq%sMeter' % seq, (cycle.first().delivered / Var.kpi.demand) * 100,
+                         'Sequence %s: %s / %s' % (seq, cycle.first().delivered, Var.kpi.demand))
+            app.setLabel('seq%sAVG' % seq, avg)
+
+
+def tracker_update():
+    print('updating tracker')
+    session = create_session()
+    kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
+                                    KPI.d == datetime.date.today()).one()
+    if Var.kpi != kpi:
+        Var.kpi = kpi
+        Var.takt = Var.kpi.schedule.available_time / Var.kpi.demand
+    Var.cycles = session.query(Cycles).filter(Cycles.kpi_id == Var.kpi.id)
+    session.close()
+
+
+def area_set(area):
+    c = configparser.ConfigParser()
+    c.read('install.ini')
+    c['Database']['area'] = app.getOptionBox(area).lower()
+    with open('install.ini', 'w') as configfile:
+        c.write(configfile)
 
 
 def cycle():

@@ -17,7 +17,7 @@ while True:
             from config import GUIVar
             print('importing app.functions.* at %s' % datetime.datetime.now())
             from app.functions import *
-        elif c['Install']['type'] == 'Server':
+        else:
             from app import layout_server
             from config import *
             from app.functions import *

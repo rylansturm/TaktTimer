@@ -25,8 +25,12 @@ def install():
     c['Database'] = {'name': inst.getEntry('name'),
                      'password': inst.getEntry('password'),
                      'server': inst.getEntry('server'),
-                     'area': inst.getEntry('area'),
                      }
+    c['Areas'] = {}
+    areas = inst.getEntry('area').split(' ')
+    c['Database']['area'] = areas[0]
+    for area in areas:
+        c['Areas']['area%s' % areas.index(area)] = area
     c['Var'] = {'partsper': '1',
                 'seq': '1',
                 }
@@ -57,7 +61,7 @@ with inst.pagedWindow('Pages'):
         inst.addMessage('Installer0', 'Welcome to the Installer!')
     with inst.page(sticky='n'):
         inst.addMessage('Installer1', 'First, what type of install will this be?')
-        inst.addOptionBox('type', ['-Select-', 'Server', 'Worker'])
+        inst.addOptionBox('type', ['-Select-', 'Server', 'Team Lead', 'Worker'])
         inst.setOptionBoxChangeFunction('type', set_type)
     with inst.page(sticky='e'):
         with inst.frame('Installer2Frame'):
@@ -67,6 +71,7 @@ with inst.pagedWindow('Pages'):
             inst.addLabelEntry('password')
             inst.addLabelEntry('server')
             inst.addLabelEntry('area')
+            inst.addLabel('areaExplanation', 'Multiple areas separated by spaces, all lowercase')
             inst.setEntry('name', 'worker')
             inst.setEntry('password', 'password')
             inst.setEntry('server', '192.168.43.1')
