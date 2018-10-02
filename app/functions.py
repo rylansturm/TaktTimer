@@ -5,6 +5,8 @@ import datetime
 from math import floor
 import os
 from models import *
+from appJar.appjar import ItemLookupError
+from sqlalchemy.orm.exc import NoResultFound
 
 
 c = configparser.ConfigParser()
@@ -20,7 +22,7 @@ class Var:
     mark = datetime.datetime.now()
     block = 0
     sched = timedata.TimeData()
-    started = True
+    started = False
     available_time = sum(sched.blockSeconds)
     demand = 312
     shift = 'Day'
@@ -57,6 +59,10 @@ def counting_worker():
     # print('Counting %s/50' % Var.db_poll_count)
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
+    if Var.block != 0:
+        if not Var.started:
+            Var.started = True
+            Var.mark = Var.now
     app.setLabel('block', 'Block ' + str(Var.block) if Var.block != 0 else 'Break')
     if not Var.breaktime and Var.block == 0:
         Var.breaktime = True
@@ -105,7 +111,7 @@ def counting_worker():
                             Cycles.d.desc()).first().delivered
                         app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
                                      '%s / %s Parts' % (Var.parts_delivered, Var.demand))
-        except:
+        except NoResultFound:
             print("Today's KPI is not yet available")
         Var.db_poll_count = 0
         session.close()
@@ -119,14 +125,14 @@ def counting_server():
     if Var.kpi_id is None:
         session = create_session()
         try:
-            Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),\
-                                                KPI.shift == shift_guesser()).first()
+            Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+                                                KPI.shift == shift_guesser()).one()
             Var.kpi_id = Var.kpi.id
             Var.demand = Var.kpi.demand
             recalculate()
-        except:
+        except NoResultFound:
             Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
-                          demand=24, schedule=session.query(Schedule).filter(
+                          demand=Var.demand, schedule=session.query(Schedule).filter(
                     Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
             Var.demand = Var.kpi.demand
             session.add(Var.kpi)
@@ -135,6 +141,7 @@ def counting_server():
             recalculate()
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
+        app.setEntry('demand', Var.demand)
         session.close()
 
 
@@ -179,7 +186,7 @@ def data_log():
         try:
             new_cycle.kpi_id = session.query(KPI).filter(KPI.d == datetime.date.today(),
                                                          KPI.shift == shift_guesser()).one().id
-        except:
+        except NoResultFound:
             pass
         Var.kpi = new_cycle.kpi
     session.add(new_cycle)
@@ -219,6 +226,8 @@ def label_update():
     app.setLabel('leadUnverified', Var.lead_unverified)
     app.setLabel('battingAVG', '%.3f' % Var.batting_avg)
     app.setLabel('lastCycle', Var.last_cycle)
+    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
+                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
     if get_block_var() in range(len(Var.sched.sched)):
         app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
         if Var.block == 0:
@@ -280,7 +289,21 @@ def get_block_var():
     for time in time_list:
         if Var.now > time:
             passed += 1
+    if passed == len(time_list):
+        reset()
     return passed
+
+
+def reset():
+    Var.parts_delivered = 0
+    Var.early = 0
+    Var.late = 0
+    Var.on_time = 0
+    Var.lead_unverified = 0
+    Var.batting_avg = 0
+    Var.times_list = []
+    Var.started = False
+    display_cycle_times()
 
 
 def time_elapsed():
@@ -316,7 +339,7 @@ def press(btn):
                 try:
                     kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
                                                     KPI.d == datetime.date.today()).one()
-                except:
+                except NoResultFound:
                     kpi = KPI(d=datetime.date.today(), shift=app.getOptionBox('Shift: '))
                 kpi.demand = app.getEntry('demand')
                 kpi.schedule_id = Var.sched.id
@@ -346,12 +369,12 @@ def recalculate():
         app.setLabel('Seq', countdown_format(int(Var.sequence_time)))
         app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
                      '%s / %s Parts' % (Var.parts_delivered, Var.demand))
-    except Exception:
+    except ItemLookupError:
         print('skipping certain labels belonging to Worker')
     try:
         app.setLabel('takt2', countdown_format(int(Var.takt)))
         app.setEntry('demand', Var.demand)
-    except Exception:
+    except ItemLookupError:
         print('skipping certain labels belonging to Server')
 
 
@@ -360,6 +383,8 @@ def key_press(key):
         cycle()
     if key == '<F11>':
         app.exitFullscreen() if app.getFullscreen() else app.setFullscreen()
+    if key == '2':
+        reset()
 
 
 def menu_press(btn):
@@ -370,8 +395,8 @@ def menu_press(btn):
         app.stop()
 
 
-def set_sequence_number(option):
-    Var.seq = int(app.getOptionBox('Sequence #: '))
+def set_sequence_number(option_box):
+    Var.seq = int(app.getOptionBox(option_box))
     c = configparser.ConfigParser()
     c.read('install.ini')
     c['Var']['seq'] = str(Var.seq)
@@ -426,7 +451,7 @@ def shift_adjust(btn):
     try:
         new_schedule = session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: '),
                                                       Schedule.name == 'Custom').one()
-    except:
+    except NoResultFound:
         new_schedule = Schedule(name='Custom', shift=app.getOptionBox('Shift: '))
     new_schedule.get_times(*old_schedule.return_times())
     e = len(btn)
@@ -476,7 +501,7 @@ def set_kpi(btn):
         try:
             kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
                                             KPI.d == datetime.date.today()).one()
-        except:
+        except NoResultFound:
             kpi = KPI(d=datetime.date.today(), shift=app.getOptionBox('Shift: '))
         kpi.demand = app.getEntry('demand')
         kpi.schedule_id = Var.sched.id
@@ -538,17 +563,17 @@ def read_time_file(shift=None, name=None):
         for label in ['block%s' % block, 'block%sTotal' % block]:
             try:
                 app.removeLabel(label)
-            except:
+            except ItemLookupError:
                 print('block %s does not exist. Ignoring command to delete labels.' % block)
         for button in ['startUP%s' % block, 'startDN%s' % block,
                        'endUP%s' % block, 'endDN%s' % block]:
             try:
                 app.removeButton(button)
-            except:
+            except ItemLookupError:
                 pass
         try:
             app.removeLabelFrame('%s Block' % GUIVar.ordinalList[block])
-        except:
+        except ItemLookupError:
             pass
         print('removing block %s labels' % block)
     app.openFrame('Parameters')

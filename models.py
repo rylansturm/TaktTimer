@@ -1,12 +1,17 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Time, Date, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import create_engine
 import datetime
 from config import GUIConfig
 
 Base = declarative_base()
+if GUIConfig.platform == 'win32':
+    engine = create_engine('sqlite:///app.db')
+else:
+    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.1/timers')
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
 
 
 class Schedule(Base):
@@ -54,7 +59,7 @@ class Schedule(Base):
         self.available_time = sum(block_times)
 
     def get_times(self, s1=None, e1=None, s2=None, e2=None, s3=None, e3=None, s4=None, e4=None,
-                        s5=None, e5=None, s6=None, e6=None, s7=None, e7=None, s8=None, e8=None):
+                  s5=None, e5=None, s6=None, e6=None, s7=None, e7=None, s8=None, e8=None):
         self.start1, self.start2, self.start3, self.start4 = s1, s2, s3, s4
         self.start5, self.start6, self.start7, self.start8 = s5, s6, s7, s8
         self.end1, self.end2, self.end3, self.end4 = e1, e2, e3, e4
@@ -101,20 +106,16 @@ class Cycles(Base):
 
 
 def create_db():
-    if GUIConfig.platform == 'win32':
-        engine = create_engine('sqlite:///app.db')
-    else:
-        engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.1/timers')
     Base.metadata.create_all(engine)
 
 
 def create_session():
     """ returns a db session for the given database file """
-    if GUIConfig.platform == 'win32':
-        engine = create_engine('sqlite:///app.db')
-    else:
-        engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.1/timers')
-    Base.metadata.bind = engine
-    DBSession = sessionmaker(bind=engine)
+    # if GUIConfig.platform == 'win32':
+    #     engine = create_engine('sqlite:///app.db')
+    # else:
+    #     engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.1/timers')
+    # Base.metadata.bind = engine
+    # DBSession = sessionmaker(bind=engine)
     session = DBSession()
     return session
