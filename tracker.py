@@ -27,10 +27,10 @@ def shift_guesser():
 app = gui('tracker', 'fullscreen')
 app.setFont(size=20)
 app.setBg(GUIConfig.appBgColor)
+session = create_session()
 
 
 def update():
-    session = create_session()
     try:
         kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                         KPI.d == datetime.date.today()).one()
@@ -47,13 +47,13 @@ def update():
             Var.length = len(Var.sequences)
             app.removeAllWidgets()
             app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'))
-            app.getLabelWidget('time').config(font='arial 72')
+            app.getLabelWidget('time').config(font='arial 48')
             for seq in Var.sequences:
                 with app.frame('Sequence %s' % seq):
                     app.setSticky('ew')
                     app.addMeter('seq%sMeter' % seq, row=0, column=0, colspan=4)
                     app.setMeterFill('seq%sMeter' % seq, 'green')
-                    app.setMeterHeight('seq%sMeter' % seq, 700/Var.length-Var.length*2)
+                    app.setMeterHeight('seq%sMeter' % seq, 500/Var.length-Var.length*2)
                     app.addLabel('seq%sAVGLabel' % seq, 'Batting AVG: ', 1, 0)
                     app.addLabel('seq%sAVG' % seq, 'avg', 2, 0)
                     # app.addLabel('seq%sEarlyLateLabel' % seq, 'Early - Late', 1, 2)
@@ -118,7 +118,7 @@ def counting():
     except ItemLookupError:
         pass
     Var.poll_count += 1
-    if Var.poll_count == 10:
+    if Var.poll_count == 30:
         Var.poll_count = 0
         update()
     for seq in Var.sequences:
