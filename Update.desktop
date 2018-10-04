@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Update
+Comment=TaktTimer
+Exec=bash ~/timer_update.sh
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=None;
