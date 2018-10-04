@@ -602,7 +602,7 @@ def read_time_file(shift=None, name=None):
                  }
             for label in d:
                 app.addLabel(title=label, text=d[label][0], row=d[label][1], column=d[label][2], rowspan=d[label][3])
-            if c['Install']['type'] == 'Server':
+            if c['Install']['type'] != 'Worker':
                 for button in buttons:
                     e = len(button)
                     app.addButton(title=button, func=buttons[button][0],

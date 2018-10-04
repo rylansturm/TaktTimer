@@ -118,7 +118,7 @@ def counting():
     except ItemLookupError:
         pass
     Var.poll_count += 1
-    if Var.poll_count == 30:
+    if Var.poll_count == 15:
         Var.poll_count = 0
         update()
     for seq in Var.sequences:
