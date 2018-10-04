@@ -5,4 +5,4 @@ try:
     app = gui(GUIConfig.title, GUIConfig.windowSize[GUIConfig.platform])
 except KeyError:
     app = gui(GUIConfig.title, 'fullscreen')
-app.setFont(size=GUIConfig.normalFont)
+app.setFont(size=GUIConfig.fontSize)

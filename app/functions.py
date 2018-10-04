@@ -1,7 +1,6 @@
 from app import app, timedata
-from config import GUIVar, GUIConfig, basedir
+from config import *
 import configparser
-import datetime
 from math import floor
 import os
 from models import *
@@ -14,144 +13,157 @@ c.read('install.ini')
 
 
 class Var:
-    session = create_session()
-    db_file = 'app.db'
-    db_poll_count = 15
-    time_open = datetime.datetime.now()
-    now = datetime.datetime.now()
-    mark = datetime.datetime.now()
-    block = 0
-    sched = timedata.TimeData()
-    started = False
-    available_time = sum(sched.blockSeconds)
-    demand = 312
-    shift = 'Day'
-    takt = 74
-    tct = int(takt)
-    tCycle = 0
-    partsper = int(c['Var']['partsper'])
-    sequence_time = int(tct * partsper)
-    parts_delivered = 0
-    andon = False
-    in_window = False
-    early = 0
-    late = 0
-    on_time = 0
-    hit = False
-    lead_unverified = 0
-    batting_avg = 0.0
-    last_cycle = 0
-    times_list = []
-    seq = int(c['Var']['seq'])
+    """ Variables used in each app instance, constantly changing """
+    session = create_session()                  # db session
+    db_poll_count = 95                          # auto increments and polls db at db_poll_value
+    db_poll_target = 100                        # recurrence of db poll
+    time_open = datetime.datetime.now()         # value written at app start
+    now = datetime.datetime.now()               # auto updates with counting function
+    mark = datetime.datetime.now()              # datetime at most recent cycle
+    block = 0                                   # current block
+    sched = timedata.TimeData()                 # TODO: remove timedata objects and replace w/db
+    started = False                             # fixes abnormal timer countdown at start of shift
+    available_time = sum(sched.blockSeconds)    # total available time for shift
+    demand = 312                                # part demand (total including rejects
+    shift = 'Day'                               # current shift
+    takt = 74.0                                 # takt time (float for accurate calculations, displays as int)
+    tct = int(takt)                             # target cycle time ("remaining takt time")
+    tCycle = 0                                  # current countdown value
+    partsper = int(c['Var']['partsper'])        # parts delivered per cycle
+    sequence_time = int(tct * partsper)         # tct * partsper, when the sequence is expected to deliver
+    parts_delivered = 0                         # total parts delivered
+    early = 0                                   # number of cycles completed before target window
+    late = 0                                    # number of cycles completed after target window
+    on_time = 0                                 # number of cycles completed in target window
+    hit = False                                 # whether the last cycle was on target, used for DB entry
+    lead_unverified = 0                         # number of Takt Time andons not responded to by TL
+    batting_avg = 0.0                           # average of cycles completed in target window
+    last_cycle = 0                              # the cycle time of the most recent cycle
+    times_list = []                             # complete list of each cycle time for current shift by this sequence
+    seq = int(c['Var']['seq'])                  # numerical representation for each operator (from start to end of flow)
     kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
-                                    KPI.shift == 'Day').first()
-    kpi_id = None
-    ahead = True
-    schedule_edited = False
-    schedule_option_list = []
-    breaktime = True
+                                    KPI.shift == 'Day').first()     # db entry for current shift (demand, schedule)
+    kpi_id = None                               # id for simpler db queries
+    ahead = True                                # whether or not we are currently ahead of pace
+    schedule_edited = False                     # whether TL has adjusted schedule (shows 'Custom' for schedule)
+    schedule_option_list = []                   # replaces GUIVar.scheduleTypes with list of schedules from db
+    breaktime = True                            # whether it is currently break (fixes countdown issues after break)
+    rejects = 0                                 # number of parts rejected from sequence
     session.close()
 
 
 def counting_worker():
-    app.setLabel('timestamp',
-                 datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
-    # print('Counting %s/50' % Var.db_poll_count)
+    """ registered event for GUI instance of type: Worker; runs about 10 times/second"""
+    app.setLabel('timestamp', datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
     Var.now = datetime.datetime.now()
     Var.block = int(get_block_var() / 2) + 1 if get_block_var() % 2 != 0 else 0
-    if Var.block != 0:
-        if not Var.started:
-            Var.started = True
-            Var.mark = Var.now
+
+    """ Setting the mark when the first block happens """
+    if Var.block != 0:  # if we are currently running:
+        if not Var.started:  # if we haven't already started the shift on this timer:
+            Var.started = True  # well now we have
+            Var.mark = Var.now  # let's start the counter from here rather than whenever the timer turned on
     app.setLabel('block', 'Block ' + str(Var.block) if Var.block != 0 else 'Break')
-    if not Var.breaktime and Var.block == 0:
-        Var.breaktime = True
-        if 0 < get_block_var() < len(Var.sched.sched):
-            break_seconds = Var.sched.breakSeconds[(get_block_var() // 2) - 1]
-            Var.mark += datetime.timedelta(seconds=break_seconds)
-    elif Var.breaktime and Var.block != 0:
-        Var.breaktime = False
-    label_update()
-    if Var.started and Var.block != 0:
-        Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))
-        app.setLabel('tCycle', countdown_format(Var.tCycle))
-    window = GUIVar.target_window * Var.partsper
-    if app.getLabelBg('tCycle') != GUIConfig.targetColor and -window <= Var.tCycle <= window:
-        app.setLabelBg('tCycle', GUIConfig.targetColor)
-    elif app.getLabelBg('tCycle') != GUIConfig.andonColor and Var.tCycle < -window:
-        app.setLabelBg('tCycle', GUIConfig.andonColor)
-    elif app.getLabelBg('tCycle') != GUIConfig.appBgColor and Var.tCycle > window:
-        app.setLabelBg('tCycle', GUIConfig.appBgColor)
-    Var.db_poll_count += 1
-    if Var.db_poll_count == 20:
+
+    """ stop the timer from subtracting the break times when we start back up """
+    if not Var.breaktime and Var.block == 0:  # when we first go to break
+        Var.breaktime = True  # make sure the function isn't called again
+        if 0 < get_block_var() < len(Var.sched.sched):  # don't try to add a break value at the end of the shift
+            break_seconds = Var.sched.breakSeconds[(get_block_var() // 2) - 1]  # how many seconds for this break?
+            Var.mark += datetime.timedelta(seconds=break_seconds)  # push the mark forward
+    elif Var.breaktime and Var.block != 0:  # when available time starts again:
+        Var.breaktime = False  # reset this variable
+
+    label_update()  # separate function for readability
+
+    """ update the main counter """
+    if Var.started and Var.block != 0:  # if we are in 'available time'
+        Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))  # expected_time - time_since_mark
+        app.setLabel('tCycle', countdown_format(Var.tCycle))  # countdown_format just makes it look better
+
+    """ set the tCycle label background as a visual cue """
+    window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
+    color = app.getLabelBg('tCycle')  # what color is it right now?
+    if color != GUIConfig.targetColor and -window <= Var.tCycle <= window:  # if in the window and not the right color:
+        app.setLabelBg('tCycle', GUIConfig.targetColor)  # Let the operator know now is a good time
+    elif color != GUIConfig.andonColor and Var.tCycle < -window:  # if late and not the right color:
+        app.setLabelBg('tCycle', GUIConfig.andonColor)  # Let the operator know they failed (... I mean systems?)
+    elif color != GUIConfig.appBgColor and Var.tCycle > window:  # if not yet in the window and not the right color:
+        app.setLabelBg('tCycle', GUIConfig.appBgColor)  # Stop letting the operator know so much. Just chill.
+
+    """ check to see if we are reading the right KPI """
+    Var.db_poll_count += 1  # auto-increment and check every db_poll_target-th time. No need to check too frequently
+    if Var.db_poll_count == Var.db_poll_target:  # every db_poll_target-th time
         session = create_session()
-        try:
+        try:  # there should one (only one) kpi that matches. If not, go to the exception.
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
-                                            KPI.d == datetime.date.today()).one()
-            seq = session.query(Cycles.seq).filter(Cycles.kpi == kpi).all()
-            if c['Install']['type'] == 'Worker':
-                if Var.shift != kpi.shift or \
-                        Var.sched.name != kpi.schedule.name or\
-                        Var.demand != kpi.demand or\
-                        Var.kpi_id != kpi.id or\
-                        Var.available_time != kpi.schedule.available_time:
-                    print(Var.available_time)
-                    Var.shift = kpi.shift
-                    read_time_file(shift=Var.shift, name=kpi.schedule.name)
-                    Var.demand = kpi.demand
-                    Var.kpi_id = kpi.id
-                    Var.available_time = Var.sched.available_time
-                    print(Var.available_time)
-                    recalculate()
-                    Var.started = True
-                    app.setLabel('Schedule: ', Var.sched.name + ' Schedule')
-                    if (Var.seq, ) in seq:
-                        Var.parts_delivered = session.query(Cycles.delivered).filter(
-                            Cycles.kpi == kpi, Cycles.seq == Var.seq).order_by(
-                            Cycles.d.desc()).first().delivered
-                        app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                                     '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+                                            KPI.d == datetime.date.today()).one()  # the kpi for today, this shift
+            seq = session.query(Cycles.seq).filter(Cycles.kpi == kpi).all()  # all the active sequences on this kpi
+            """ if the info we have does not match what's on the kpi, update the kpi """
+            if Var.shift != kpi.shift or \
+                    Var.sched.name != kpi.schedule.name or\
+                    Var.demand != kpi.demand or\
+                    Var.kpi_id != kpi.id or\
+                    Var.available_time != kpi.schedule.available_time:
+                Var.shift = kpi.shift
+                read_time_file(shift=Var.shift, name=kpi.schedule.name)  # creates timedata.TimeData object as Var.sched
+                Var.demand = kpi.demand
+                Var.kpi_id = kpi.id
+                Var.available_time = Var.sched.available_time
+                recalculate()  # resets takt, tct, seq_time, and related labels
+                app.setLabel('Schedule: ', Var.sched.name + ' Schedule')
+                if (Var.seq, ) in seq:
+                    Var.parts_delivered = session.query(Cycles.delivered).filter(
+                        Cycles.kpi == kpi, Cycles.seq == Var.seq).order_by(
+                        Cycles.d.desc()).first().delivered
+                    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
+                                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
         except NoResultFound:
-            print("Today's KPI is not yet available")
+            print("Either no KPI exists for the current time, or a duplicate was made.")
         Var.db_poll_count = 0
         session.close()
 
 
 def counting_server():
+    """ registered event for GUI instance of type: [Server, Team Lead]; runs about 5 times/second"""
     app.setLabel('timestamp',
                  datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
-    app.setEntry('demand', Var.demand)
-    app.setLabel('totalTime', Var.available_time)
-    if Var.kpi_id is None:
+    if Var.kpi_id is None:  # if we haven't made a connection to the kpi yet:
         session = create_session()
-        try:
+        try:  # try to get the existing kpi, don't make one unless there isn't one already
             Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
                                                 KPI.shift == shift_guesser()).one()
             Var.kpi_id = Var.kpi.id
             Var.demand = Var.kpi.demand
             recalculate()
-        except NoResultFound:
-            Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
-                          demand=Var.demand, schedule=session.query(Schedule).filter(
-                    Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
-            Var.demand = Var.kpi.demand
-            session.add(Var.kpi)
-            session.commit()
-            Var.kpi_id = Var.kpi.id
-            recalculate()
+        except NoResultFound:  # make one if you didn't find one
+            if app.yesNoBox('New Shift?', 'No KPI was found. Would you like to create a new shift?'):
+                Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
+                              demand=Var.demand, schedule=session.query(Schedule).filter(
+                        Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
+                Var.demand = Var.kpi.demand
+                session.add(Var.kpi)
+                session.commit()
+                Var.kpi_id = Var.kpi.id
+                recalculate()
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
-        app.setEntry('demand', Var.demand)
         session.close()
+    app.setEntry('demand', Var.demand)
+    app.setLabel('totalTime', Var.available_time)
+    Var.block = get_block_var()
 
 
 def cycle():
-    Var.parts_delivered += Var.partsper
-    t = Var.tCycle
+    """ This is what happens when the button is pushed each cycle by the operators """
+    Var.parts_delivered += Var.partsper  # add parts to the delivered quantity
+    t = Var.tCycle  # what did the timer read when we cycled?
     Var.last_cycle = Var.sequence_time - t
     Var.times_list.append(Var.last_cycle)
     app.setLabel('avgCycle', int(sum(Var.times_list) / len(Var.times_list)))
     display_cycle_times()
+
+    """ was the part delivered late, early, on time? """
     window = GUIVar.target_window * Var.partsper
     if t > window:
         Var.hit = False
@@ -164,19 +176,25 @@ def cycle():
     else:
         Var.hit = True
         Var.on_time += 1
+
     Var.tct = get_tct()
     Var.sequence_time = Var.tct * Var.partsper
+    Var.tCycle = Var.sequence_time
+    app.setLabel('tCycle', countdown_format(Var.tCycle))
+    app.setLabelBg('tCycle', GUIConfig.appBgColor)
     app.setLabel('TCT', countdown_format(Var.tct))
     app.setLabel('Seq', countdown_format(Var.sequence_time))
     Var.batting_avg = Var.on_time / sum([Var.on_time, Var.late, Var.early])
-    Var.andon = False
     Var.mark = datetime.datetime.now()
+    yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
+    app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
     app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
-    app.thread(data_log())
+                 '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+    app.thread(data_log())  # save it! but don't make me wait on you.
 
 
 def data_log():
+    """ where data goes to die I mean be analyzed """
     session = create_session()
     new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle,
                        parts_per=Var.partsper, delivered=Var.parts_delivered, hit=Var.hit)
@@ -195,6 +213,7 @@ def data_log():
 
 
 def display_cycle_times():
+    """ updates the text area on the Data tab to show every cycle time this shift """
     cycle_list = []
     for i in Var.times_list:
         cycle_list.append(str(i))
@@ -204,22 +223,26 @@ def display_cycle_times():
 
 
 def get_tct():
+    """ returns 'remaining takt time', or remaining_time//remaining_demand """
     remaining_time = Var.available_time - time_elapsed()
     remaining_demand = Var.demand - Var.parts_delivered
     if remaining_demand > 0:
         Var.tct = int(remaining_time / remaining_demand)
     else:
         Var.tct = int(Var.takt)
+    """ Don't go higher than original Takt Time, don't go lower than GUIVar.minimum_tct """
     behind, ahead = Var.tct < GUIVar.minimum_tct, Var.tct > int(Var.takt)
     Var.tct = GUIVar.minimum_tct if behind else int(Var.takt) if ahead else Var.tct
     return Var.tct
 
 
 def label_update():
+    """ updates the majority of labels throughout GUI, called from counting function """
     app.setLabel('time', Var.now.strftime('%I:%M:%S %p'))
     app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
-    app.setLabel('partsAhead', parts_ahead())
+    disparity = parts_ahead() if parts_ahead() >= 0 else -(parts_ahead())
+    app.setLabel('partsAhead', disparity)
     app.setLabel('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
@@ -227,58 +250,65 @@ def label_update():
     app.setLabel('battingAVG', '%.3f' % Var.batting_avg)
     app.setLabel('lastCycle', Var.last_cycle)
     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+                 '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+
+    """ set the label for 'Next Break' or 'Starting at' depending on where we are """
     if get_block_var() in range(len(Var.sched.sched)):
         app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
         if Var.block == 0:
             app.setLabel('nextBreakLabel', 'Starting at: ')
         else:
             app.setLabel('nextBreakLabel', 'Next Break: ')
-    if Var.ahead and int(app.getLabel('partsAhead')) < 0:
+
+    """ set the partsAhead label color and text ('ahead' or 'behind') """
+    if Var.ahead and parts_ahead() < 0:
         Var.ahead = False
         app.setLabel('partsAheadLabel', 'Parts\nBehind')
         app.setLabelBg('partsAhead', 'red')
-    if not Var.ahead and int(app.getLabel('partsAhead')) >= 0:
+    if not Var.ahead and parts_ahead() >= 0:
         Var.ahead = True
         app.setLabel('partsAheadLabel', 'Parts\nAhead')
         app.setLabelBg('partsAhead', GUIConfig.appBgColor)
 
 
 def demand_set(btn):
-    demand = int(app.getEntry('demand'))
-    demand += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
-    demand = (1 if demand < 1 else demand)
-    session = create_session()
-    kpi = Var.kpi
-    kpi.demand = demand
-    session.add(kpi)
-    session.commit()
-    session.close()
-    Var.demand = demand
-    app.setEntry('demand', demand)
-    recalculate()
+    """ Sets the demand and saves it to the KPI. Done from the TL computer """
+    demand = int(app.getEntry('demand'))  # start from where it is now
+    demand += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))  # go up or down this interval
+    demand = (1 if demand < 1 else demand)  # Demand won't go below 1
+    session = create_session()  # Save it!
+    kpi = Var.kpi               #
+    kpi.demand = demand         #
+    session.add(kpi)            #
+    session.commit()            #
+    session.close()             #
+    Var.demand = demand         # set global(ish) variable
+    app.setEntry('demand', demand)  # oh yeah, write it back up there.
+    recalculate()  # reset values for TT, TCT, Seq time, etc
 
 
 def partsper_set(btn):
-    partsper = int(app.getLabel('partsper'))
-    partsper += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
-    partsper = (1 if partsper < 1 else partsper)
-    app.setLabel('partsper', partsper)
-    Var.partsper = partsper
-    c['Var']['partsper'] = str(partsper)
-    with open('install.ini', 'w') as configfile:
-        c.write(configfile)
-    recalculate()
+    """ sets the parts delivered per cycle from each worker computer """
+    partsper = int(app.getLabel('partsper'))  # start from where it is now
+    partsper += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))  # go up or down this interval
+    partsper = (1 if partsper < 1 else partsper)  # partsper won't go below 1
+    app.setLabel('partsper', partsper)  # write it on the gui
+    Var.partsper = partsper  # set global(ish) variable
+    c['Var']['partsper'] = str(partsper)            # Save it!
+    with open('install.ini', 'w') as configfile:    #
+        c.write(configfile)                         #
+    recalculate()  # reset values for sequence time, which is based on tct and partsper
 
 
 def parts_out_set(btn):
-    parts = Var.parts_delivered
-    parts += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))
-    parts = 0 if parts < 0 else parts
-    Var.parts_delivered = parts
-    app.setLabel('partsOut', Var.parts_delivered)
+    """ sets the total parts delivered on this computer """
+    parts = Var.parts_delivered  # start from where it is now
+    parts += (int(btn[:2]) if btn[2:4] == 'UP' else - int(btn[:2]))  # go up or down this interval
+    parts = 0 if parts < 0 else parts  # parts won't go below 0
+    Var.parts_delivered = parts  # reset global(ish) variable
+    app.setLabel('partsOut', Var.parts_delivered)  # write in on the gui
     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+                 '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
 
 
 def get_block_var():
@@ -286,82 +316,76 @@ def get_block_var():
         '1' during first block, '2' during first break, '3' during block 2, etc. """
     time_list = Var.sched.sched
     passed = 0
+    """ iterate through each time in the schedule, and increase the passed variable if the time has passed """
     for time in time_list:
         if Var.now > time:
             passed += 1
+    """ at the end of the shift, run the reset function """
     if passed == len(time_list):
         reset()
     return passed
 
 
 def reset():
-    Var.parts_delivered = 0
-    Var.early = 0
-    Var.late = 0
-    Var.on_time = 0
-    Var.lead_unverified = 0
-    Var.batting_avg = 0
-    Var.times_list = []
-    Var.started = False
-    display_cycle_times()
+    """ reset all necessary variables for the incoming shift """
+    if c['Install']['type'] == 'Worker':
+        Var.parts_delivered = 0
+        Var.early = 0
+        Var.late = 0
+        Var.on_time = 0
+        Var.lead_unverified = 0
+        Var.batting_avg = 0
+        Var.times_list = []
+        Var.started = False
+        display_cycle_times()
+    else:
+        Var.kpi_id = None
 
 
 def time_elapsed():
+    """ returns the amount of 'available time' that has passed as float """
     now = datetime.datetime.now()
     block = get_block_var()
-    elapsed = (now - Var.sched.sched[0]).total_seconds()
-    for i in range(int(len(Var.sched.sched)/2) - 1):
+    elapsed = (now - Var.sched.sched[0]).total_seconds()  # total time since start
+    for i in range(int(len(Var.sched.sched)/2) - 1):  # subtract each break that is already completely passed
         elapsed -= (Var.sched.breakSeconds[i] if block/2 > i+1 else 0)
-    if block % 2 == 0:
+    if block % 2 == 0:  # if its currently break, just keep subtracting however long it has been break
         elapsed -= (now - Var.sched.sched[block - 1]).total_seconds()
     return elapsed
 
 
 def parts_ahead():
+    """ returns the difference between where we should be and where we are """
     time = time_elapsed()
     expected = time / Var.takt
     return Var.parts_delivered - int(expected)
 
 
 def press(btn):
-    if btn == 'Go':
-        if int(app.getEntry('demand')) == 0:
-            app.warningBox('No Demand', 'No demand was entered.')
-        else:
-            for tab in GUIConfig.tabs:
-                app.setTabbedFrameDisabledTab('Tabs', tab, disabled=False)
-            app.setTabbedFrameSelectedTab('Tabs', 'Main')
-            Var.mark = datetime.datetime.now()
-            Var.started = True
-            recalculate()
-            if c['Install']['type'] == 'Server':
-                session = create_session()
-                try:
-                    kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
-                                                    KPI.d == datetime.date.today()).one()
-                except NoResultFound:
-                    kpi = KPI(d=datetime.date.today(), shift=app.getOptionBox('Shift: '))
-                kpi.demand = app.getEntry('demand')
-                kpi.schedule_id = Var.sched.id
-                session.add(kpi)
-                session.commit()
-                session.close()
+    """ handles non-specific button pushes """
+
+    """ reset lead_unverified counter to 0 """
     if btn == 'leadUnverifiedButton':
         Var.lead_unverified = 0
         app.setLabel('leadUnverified', Var.lead_unverified)
-    if btn == 'Set':
-        Var.parts_delivered = int(app.getSpinBox('Parts Delivered'))
+
+    """ reject 1 part """
+    if btn == 'Reject + 1':
+        Var.rejects += 1
+        yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
+        app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
         app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                     '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+                     '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+        print('Bye, part! Have fun on your first day at bearings!')
 
 
 def recalculate():
-    print('app.functions.recalculate')
+    """ resets labels for available time, takt, tct, seq time, and partsOutMeter """
     Var.available_time = sum(Var.sched.blockSeconds)
     # Var.demand = int(app.getEntry('demand'))
     Var.takt = Var.available_time / Var.demand
     Var.tct = get_tct()
-    try:
+    try:  # these labels only exist on the worker type
         # Var.partsper = int(app.getEntry('partsper'))
         Var.sequence_time = Var.tct * Var.partsper
         app.setLabel('Takt', countdown_format(int(Var.takt)))
@@ -371,14 +395,15 @@ def recalculate():
                      '%s / %s Parts' % (Var.parts_delivered, Var.demand))
     except ItemLookupError:
         print('skipping certain labels belonging to Worker')
-    try:
+    try:  # these labels only exist on the Server/Team Lead Type
         app.setLabel('takt2', countdown_format(int(Var.takt)))
         app.setEntry('demand', Var.demand)
     except ItemLookupError:
-        print('skipping certain labels belonging to Server')
+        print('skipping certain labels belonging to Leader')
 
 
 def key_press(key):
+    """ handles physical key presses (keyboard or pedal) """
     if key == '1' or key == '<space>':
         cycle()
     if key == '<F11>':
@@ -396,45 +421,26 @@ def menu_press(btn):
 
 
 def set_sequence_number(option_box):
+    """ sets the sequence number as an identifier (should be unique in the cell) """
     Var.seq = int(app.getOptionBox(option_box))
     c = configparser.ConfigParser()
     c.read('install.ini')
     c['Var']['seq'] = str(Var.seq)
-    with open('install.ini', 'w') as configfile:
+    with open('install.ini', 'w') as configfile:  # saves sequence number to install.ini to load every time
         c.write(configfile)
 
 
-# def enable_sched_select():
-#     for box in ['Shift: ', 'Schedule: ']:
-#         app.enableOptionBox(box)
-#     app.setOptionBox('Shift: ', shift_guesser())
-#     session = create_session(Var.db_file)
-#     schedule_list = []
-#     for sched in session.query(Schedule).filter(Schedule.shift == shift_guesser()).all():
-#         schedule_list.append(sched.name)
-#     app.changeOptionBox('Schedule: ', schedule_list)
-#     read_time_file()
-#     app.enableButton('Go')
-
-
-def enable_parts_out():
-    if app.getCheckBox('Parts Out'):
-        app.enableSpinBox('Parts Delivered')
-        app.enableButton('Set')
-    else:
-        app.disableSpinBox('Parts Delivered')
-        app.disableButton('Set')
-
-
 def shift_guesser():
+    """ returns the current shift based on the time """
     return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
         else 'Day' if Var.now.hour >= 7 else 'Grave'
 
 
-Var.shift = shift_guesser()
+Var.shift = shift_guesser()  # set the current shift upon startup
 
 
 def countdown_format(seconds: int):
+    """ takes seconds and returns ":SS", "MM:SS", or "HH:MM:SS" """
     hours, minutes = divmod(seconds, 3600)
     minutes, seconds = divmod(minutes, 60)
     hour_label = '%s:%02d' % (hours, minutes)
@@ -444,11 +450,12 @@ def countdown_format(seconds: int):
 
 
 def shift_adjust(btn):
-    Var.schedule_edited = True
-    app.setOptionBox('Schedule: ', 'Custom', callFunction=False)
+    """ option on TL computer to adjust the start and stop times of the shift"""
+    Var.schedule_edited = True  # variable to show that this function has ran
+    app.setOptionBox('Schedule: ', 'Custom', callFunction=False)  # no longer using a stock schedule
     session = create_session()
     old_schedule = session.query(Schedule).filter(Schedule.id == Var.sched.id).first()
-    try:
+    try:  # use one that exists, or create new one
         new_schedule = session.query(Schedule).filter(Schedule.shift == app.getOptionBox('Shift: '),
                                                       Schedule.name == 'Custom').one()
     except NoResultFound:
@@ -486,28 +493,6 @@ def shift_adjust(btn):
     Var.takt = int(Var.available_time / Var.demand)
     app.setLabel('totalTime', Var.available_time)
     app.setLabel('takt2', countdown_format(Var.takt))
-
-
-def set_kpi(btn):
-    if int(app.getEntry('demand')) == 0:
-        app.warningBox('No Demand', 'No demand was entered.')
-    else:
-        if Var.schedule_edited:
-            app.showSubWindow('New Schedule')
-        else:
-            Var.mark = datetime.datetime.now()
-            recalculate()
-        session = create_session()
-        try:
-            kpi = session.query(KPI).filter(KPI.shift == app.getOptionBox('Shift: '),
-                                            KPI.d == datetime.date.today()).one()
-        except NoResultFound:
-            kpi = KPI(d=datetime.date.today(), shift=app.getOptionBox('Shift: '))
-        kpi.demand = app.getEntry('demand')
-        kpi.schedule_id = Var.sched.id
-        session.add(kpi)
-        session.commit()
-        session.close()
 
 
 def change_schedule_box_options():

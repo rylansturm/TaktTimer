@@ -1,7 +1,7 @@
 from app.functions import *
 
 app.registerEvent(counting_worker)
-app.setPollTime(150)
+app.setPollTime(50)
 
 # Drop down menus at top left #
 app.addMenuList('File', GUIVar.fileMenuList, menu_press)
@@ -12,7 +12,7 @@ print('creating tabs')
 with app.tabbedFrame('Tabs'):
 
     # Main tab # main screen, for seeing TT, TCT, tCycle, partsAhead, etc #
-    with app.tab(GUIConfig.tabs[0]):
+    with app.tab('Main'):
         with app.labelFrame('Remaining Cycle Time', row=0, column=0, rowspan=5):
             app.setSticky('new')
             app.setLabelFrameAnchor('Remaining Cycle Time', 'n')
@@ -63,7 +63,7 @@ with app.tabbedFrame('Tabs'):
     print('%s seconds to data tab' % (datetime.datetime.now()-Var.time_open).total_seconds())
 
     # DATA tab #
-    with app.tab(GUIConfig.tabs[1]):
+    with app.tab('Data'):
         with app.frame('Presets', row=0, column=0, colspan=2):
             app.setSticky('new')
             app.setBg(GUIConfig.appBgColor)
@@ -136,5 +136,3 @@ print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.t
 
 for i in ['Main', 'Data']:
     app.setTabBg('Tabs', i, GUIConfig.appBgColor)
-
-
