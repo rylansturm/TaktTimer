@@ -64,7 +64,7 @@ def update():
             cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
             avg = '%.3f' % (len(cycle.filter(Cycles.hit == 1).all()) / len(cycle.all()))
             app.setMeter('seq%sMeter' % seq, (cycle.first().delivered / Var.kpi.demand) * 100,
-                         'Sequence %s: %s / %s/ %s' %
+                         'Sequence %s: (%s / %s) / %s' %
                          (seq, cycle.first().delivered, int(time_elapsed() // Var.takt), Var.kpi.demand))
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(cycle.first().delivered)
