@@ -63,6 +63,7 @@ def counting_worker():
         if not Var.started:  # if we haven't already started the shift on this timer:
             Var.started = True  # well now we have
             Var.mark = Var.now  # let's start the counter from here rather than whenever the timer turned on
+            recalculate()
     app.setLabel('block', 'Block ' + str(Var.block) if Var.block != 0 else 'Break')
 
     """ stop the timer from subtracting the break times when we start back up """
@@ -316,7 +317,7 @@ def get_block_var():
         '1' during first block, '2' during first break, '3' during block 2, etc. """
     time_list = Var.sched.sched
     passed = 0
-    """ iterate through each time in the schedule, and increase the passed variable if the time has passed """
+    """ iterate through each time in the schedule, and increment the 'passed' variable if the time has passed """
     for time in time_list:
         if Var.now > time:
             passed += 1
@@ -337,6 +338,7 @@ def reset():
         Var.batting_avg = 0
         Var.times_list = []
         Var.started = False
+        Var.tCycle = 0
         display_cycle_times()
     else:
         Var.kpi_id = None
@@ -582,7 +584,7 @@ def read_time_file(shift=None, name=None):
                        'endDN%s' % block: [shift_adjust, 1, 0],
                        }
             d = {'block%s' % block:         ['%s\n%s' % (start.strftime('%I:%M %p'), end.strftime('%I:%M %p')), 0, 1, 2],
-                 'block%sTotal' % block:    ['%s\nSeconds' % block_time, 0, 3, 2],
+                 'block%sTotal' % block:    ['%s\nSecs' % block_time, 0, 3, 2],
                  # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
                  }
             for label in d:
