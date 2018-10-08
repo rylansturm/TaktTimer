@@ -10,13 +10,14 @@ print('creating tabs')
 # Tabbed Frame that holds the whole GUI #
 with app.tabbedFrame('Tabs'):
 
-    # Main tab # main screen, for seeing TT, TCT, tCycle, partsAhead, etc #
+    """ Main tab - main screen, for seeing TT, TCT, tCycle, partsAhead, etc """
     with app.tab('Main'):
         with app.labelFrame('Remaining Cycle Time', row=0, column=0, rowspan=5):
             app.setSticky('new')
             app.setLabelFrameAnchor('Remaining Cycle Time', 'n')
             # Main Cycle Time
             app.addLabel('tCycle', 0, row=0, column=0, colspan=4)
+            app.setLabelSubmitFunction('tCycle', andon)
             app.getLabelWidget('tCycle').config(font=GUIConfig.tCycleFont)
             # Meter for parts produced
             app.addMeter('partsOutMeter', row=2, column=0, colspan=4)
@@ -61,7 +62,7 @@ with app.tabbedFrame('Tabs'):
 
     print('%s seconds to data tab' % (datetime.datetime.now()-Var.time_open).total_seconds())
 
-    # DATA tab #
+    """ Data tab - go to this tab to adjust partsper, parts_delivered, and sequence """
     with app.tab('Data'):
         with app.frame('Presets', row=0, column=0, colspan=2):
             app.setSticky('new')

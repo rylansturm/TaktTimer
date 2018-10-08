@@ -6,6 +6,8 @@ import os
 from models import *
 from appJar.appjar import ItemLookupError
 from sqlalchemy.orm.exc import NoResultFound
+if GUIConfig.platform == 'linux':
+    from app.lights import *
 
 
 c = configparser.ConfigParser()
@@ -49,6 +51,7 @@ class Var:
     schedule_option_list = []                   # replaces GUIVar.scheduleTypes with list of schedules from db
     breaktime = True                            # whether it is currently break (fixes countdown issues after break)
     rejects = 0                                 # number of parts rejected from sequence
+    andon = False
     session.close()
 
 
@@ -81,6 +84,10 @@ def counting_worker():
     if Var.started and Var.block != 0:  # if we are in 'available time'
         Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))  # expected_time - time_since_mark
         app.setLabel('tCycle', countdown_format(Var.tCycle))  # countdown_format just makes it look better
+
+    """ control the andon tower lights """
+    if GUIConfig.platform == 'linux':
+        run_lights()
 
     """ set the tCycle label background as a visual cue """
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
@@ -153,6 +160,47 @@ def counting_server():
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
     Var.block = get_block_var()
+
+
+def andon():
+    """ gives operator option to manually turn on red andon light for non takt-related andons """
+    Var.andon = True
+
+
+def run_lights():
+    """ controls the andon lights. called in counting_worker """
+    window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
+
+    """ control red light """
+    if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
+        if Var.now.second % 2 == 0:  # blink the red light
+            Light.red(True)
+        else:
+            Light.red(False)
+    else:  # otherwise only turn the red light on when TT is missed
+        if Var.tCycle < -window:
+            Light.red(True)
+        else:
+            Light.red(False)
+
+    """ control the green light """
+    if Var.tCycle > window:  # green is on when we haven't missed TT
+        Light.green(True)
+    elif -window <= Var.tCycle <= window:  # green flashes when in the target window
+        if Var.now.second % 2 == 0:
+            Light.green(True)
+        else:
+            Light.green(False)
+    else:
+        Light.green(False)
+
+    """ control buzzer """
+    if -window - 1 <= Var.tCycle < -window:  # buzzer is on for one second when TT missed
+        Light.buzzer(True)
+    if Var.tCycle < -window and Var.tCycle % 60 == 0:  # buzzer repeats once per minute when TT missed
+        Light.buzzer(True)
+    else:  # otherwise keep the buzzer off
+        Light.buzzer(False)
 
 
 def cycle():
@@ -340,6 +388,7 @@ def reset():
         Var.started = False
         Var.tCycle = 0
         display_cycle_times()
+        Var.rejects = 0
     else:
         Var.kpi_id = None
 
@@ -366,8 +415,9 @@ def parts_ahead():
 def press(btn):
     """ handles non-specific button pushes """
 
-    """ reset lead_unverified counter to 0 """
+    """ reset lead_unverified counter to 0 and turn off blinking andon light """
     if btn == 'leadUnverifiedButton':
+        Var.andon == False
         Var.lead_unverified = 0
         app.setLabel('leadUnverified', Var.lead_unverified)
 
