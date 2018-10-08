@@ -417,7 +417,7 @@ def press(btn):
 
     """ reset lead_unverified counter to 0 and turn off blinking andon light """
     if btn == 'leadUnverifiedButton':
-        Var.andon == False
+        Var.andon = False
         Var.lead_unverified = 0
         app.setLabel('leadUnverified', Var.lead_unverified)
 
