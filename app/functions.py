@@ -38,7 +38,6 @@ class Var:
     late = 0                                    # number of cycles completed after target window
     on_time = 0                                 # number of cycles completed in target window
     hit = False                                 # whether the last cycle was on target, used for DB entry
-    lead_unverified = 0                         # number of Takt Time andons not responded to by TL
     batting_avg = 0.0                           # average of cycles completed in target window
     last_cycle = 0                              # the cycle time of the most recent cycle
     times_list = []                             # complete list of each cycle time for current shift by this sequence
@@ -51,7 +50,10 @@ class Var:
     schedule_option_list = []                   # replaces GUIVar.scheduleTypes with list of schedules from db
     breaktime = True                            # whether it is currently break (fixes countdown issues after break)
     rejects = 0                                 # number of parts rejected from sequence
-    andon = False
+    andon = False                               # whether the operator has pushed the andon button
+    unresponded = 0                             # number of Takt Time andons not responded to by TL
+    andonCount = 0                              # total number of times operator has hit andon button
+    andonCountMsg = '0'                         # for the TMAndon label, normally '%s + %s' % (andonCount, unresponded)
     session.close()
 
 
@@ -165,6 +167,10 @@ def counting_server():
 def andon():
     """ gives operator option to manually turn on red andon light for non takt-related andons """
     Var.andon = True
+    Var.unresponded += 1
+    Var.andonCountMsg = '%s + %s' % (Var.andonCount, Var.unresponded)
+    app.setLabel('TMAndon', Var.andonCountMsg)
+    app.setButtonBg('TMAndonButton', GUIConfig.andonColor)
 
 
 def run_lights():
@@ -217,11 +223,9 @@ def cycle():
     if t > window:
         Var.hit = False
         Var.early += 1
-        Var.lead_unverified += 1
     elif t < -window:
         Var.hit = False
         Var.late += 1
-        Var.lead_unverified += 1
     else:
         Var.hit = True
         Var.on_time += 1
@@ -295,7 +299,6 @@ def label_update():
     app.setLabel('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
-    app.setLabel('leadUnverified', Var.lead_unverified)
     app.setLabel('battingAVG', '%.3f' % Var.batting_avg)
     app.setLabel('lastCycle', Var.last_cycle)
     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
@@ -382,7 +385,7 @@ def reset():
         Var.early = 0
         Var.late = 0
         Var.on_time = 0
-        Var.lead_unverified = 0
+        Var.unresponded = 0
         Var.batting_avg = 0
         Var.times_list = []
         Var.started = False
@@ -416,10 +419,13 @@ def press(btn):
     """ handles non-specific button pushes """
 
     """ reset lead_unverified counter to 0 and turn off blinking andon light """
-    if btn == 'leadUnverifiedButton':
+    if btn == 'TMAndonButton':
         Var.andon = False
-        Var.lead_unverified = 0
-        app.setLabel('leadUnverified', Var.lead_unverified)
+        Var.andonCount += Var.unresponded
+        Var.unresponded = 0
+        Var.andonCountMsg = str(Var.andonCount)
+        app.setLabel('TMAndon', Var.andonCountMsg)
+        app.setButtonBg('TMAndonButton', GUIConfig.buttonColor)
 
     """ reject 1 part """
     if btn == 'Reject + 1':
