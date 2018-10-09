@@ -55,10 +55,12 @@ with app.tabbedFrame('Tabs'):
                 app.addLabel('late', 0, row=1, column=1)
                 app.addButton('TMAndonButton', press, row=0, column=2, colspan=2)
                 app.setButton('TMAndonButton', 'TM Andon')
+                app.setButtonBg('TMAndonButton', GUIConfig.buttonColor)
                 app.addLabel('TMAndon', Var.andonCountMsg, row=1, column=2)
             app.addLabel('partsAheadLabel', ' Parts\nAhead', row=5, column=0)
             app.addLabel('partsAhead', 0, row=6, column=0)
             app.addButton('Reject + 1', press, row=5, column=1, rowspan=2)
+            app.setButtonBg('Reject + 1', GUIConfig.buttonColor)
 
     print('%s seconds to data tab' % (datetime.datetime.now()-Var.time_open).total_seconds())
 

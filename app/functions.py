@@ -115,6 +115,21 @@ def counting_worker():
                     Var.demand != kpi.demand or\
                     Var.kpi_id != kpi.id or\
                     Var.available_time != kpi.schedule.available_time:
+                print('shifts:')
+                print(Var.shift)
+                print(kpi.shift)
+                print()
+                print('sched.name')
+                print(Var.sched.name)
+                print(kpi.schedule.name)
+                print()
+                print('kpi_id')
+                print(Var.kpi_id)
+                print(kpi.id)
+                print()
+                print('available time')
+                print(Var.available_time)
+                print(kpi.schedule.available_time)
                 Var.shift = kpi.shift
                 read_time_file(shift=Var.shift, name=kpi.schedule.name)  # creates timedata.TimeData object as Var.sched
                 Var.demand = kpi.demand
@@ -139,6 +154,7 @@ def counting_server():
     app.setLabel('timestamp',
                  datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
     if Var.kpi_id is None:  # if we haven't made a connection to the kpi yet:
+        print('no kpi, getting one now')
         session = create_session()
         try:  # try to get the existing kpi, don't make one unless there isn't one already
             Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
@@ -147,15 +163,14 @@ def counting_server():
             Var.demand = Var.kpi.demand
             recalculate()
         except NoResultFound:  # make one if you didn't find one
-            if app.yesNoBox('New Shift?', 'No KPI was found. Would you like to create a new shift?'):
-                Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
-                              demand=Var.demand, schedule=session.query(Schedule).filter(
-                        Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
-                Var.demand = Var.kpi.demand
-                session.add(Var.kpi)
-                session.commit()
-                Var.kpi_id = Var.kpi.id
-                recalculate()
+            Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
+                          demand=Var.demand, schedule=session.query(Schedule).filter(
+                    Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
+            Var.demand = Var.kpi.demand
+            session.add(Var.kpi)
+            session.commit()
+            Var.kpi_id = Var.kpi.id
+            recalculate()
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
         session.close()
@@ -168,8 +183,6 @@ def andon():
     """ gives operator option to manually turn on red andon light for non takt-related andons """
     Var.andon = True
     Var.unresponded += 1
-    Var.andonCountMsg = '%s + %s' % (Var.andonCount, Var.unresponded)
-    app.setLabel('TMAndon', Var.andonCountMsg)
     app.setButtonBg('TMAndonButton', GUIConfig.andonColor)
 
 
@@ -177,36 +190,39 @@ def run_lights():
     """ controls the andon lights. called in counting_worker """
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
 
-    """ control red light """
-    if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
-        if Var.now.second % 2 == 0:  # blink the red light
-            Light.red(True)
-        else:
-            Light.red(False)
-    else:  # otherwise only turn the red light on when TT is missed
-        if Var.tCycle < -window:
-            Light.red(True)
-        else:
-            Light.red(False)
+    if Var.block != 0:
+        """ control red light """
+        if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
+            if Var.now.second % 2 == 0:  # blink the red light
+                Light.red(True)
+            else:
+                Light.red(False)
+        else:  # otherwise only turn the red light on when TT is missed
+            if Var.tCycle < -window:
+                Light.red(True)
+            else:
+                Light.red(False)
 
-    """ control the green light """
-    if Var.tCycle > window:  # green is on when we haven't missed TT
-        Light.green(True)
-    elif -window <= Var.tCycle <= window:  # green flashes when in the target window
-        if Var.now.second % 2 == 0:
+        """ control the green light """
+        if Var.tCycle > window:  # green is on when we haven't missed TT
             Light.green(True)
+        elif -window <= Var.tCycle <= window:  # green flashes when in the target window
+            if Var.now.second % 2 == 0:
+                Light.green(True)
+            else:
+                Light.green(False)
         else:
             Light.green(False)
-    else:
-        Light.green(False)
 
-    """ control buzzer """
-    if -window - 1 <= Var.tCycle < -window:  # buzzer is on for one second when TT missed
-        Light.buzzer(True)
-    if Var.tCycle < -window and Var.tCycle % 60 == 0:  # buzzer repeats once per minute when TT missed
-        Light.buzzer(True)
-    else:  # otherwise keep the buzzer off
-        Light.buzzer(False)
+        """ control buzzer """
+        if -window - 1 <= Var.tCycle < -window:  # buzzer is on for one second when TT missed
+            Light.buzzer(True)
+        if Var.tCycle < -window and Var.tCycle % 60 == 0:  # buzzer repeats once per minute when TT missed
+            Light.buzzer(True)
+        else:  # otherwise keep the buzzer off
+            Light.buzzer(False)
+    else:
+        Light.set_all(0, 0, 0)
 
 
 def cycle():
@@ -304,6 +320,13 @@ def label_update():
     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
                  '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
 
+    """ sets TM andon label """
+    if Var.andon:
+        Var.andonCountMsg = '%s + %s' % (Var.andonCount, Var.unresponded)
+    else:
+        Var.andonCountMsg = Var.andonCount
+    app.setLabel('TMAndon', Var.andonCountMsg)
+
     """ set the label for 'Next Break' or 'Starting at' depending on where we are """
     if get_block_var() in range(len(Var.sched.sched)):
         app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
@@ -374,26 +397,28 @@ def get_block_var():
             passed += 1
     """ at the end of the shift, run the reset function """
     if passed == len(time_list):
-        reset()
+        if app.yesNoBox('New Shift?', 'Start the next shift?'):
+            reset()
     return passed
 
 
 def reset():
     """ reset all necessary variables for the incoming shift """
-    if c['Install']['type'] == 'Worker':
-        Var.parts_delivered = 0
-        Var.early = 0
-        Var.late = 0
-        Var.on_time = 0
-        Var.unresponded = 0
-        Var.batting_avg = 0
-        Var.times_list = []
-        Var.started = False
-        Var.tCycle = 0
-        display_cycle_times()
-        Var.rejects = 0
-    else:
-        Var.kpi_id = None
+    Var.parts_delivered = 0
+    Var.early = 0
+    Var.late = 0
+    Var.on_time = 0
+    Var.unresponded = 0
+    Var.batting_avg = 0
+    Var.times_list = []
+    Var.started = False
+    Var.tCycle = 0
+    Var.rejects = 0
+    Var.andon = False
+    Var.unresponded = 0
+    Var.andonCount = 0
+    Var.andonCountMsg = '0'
+    Var.kpi_id = None
 
 
 def time_elapsed():
@@ -423,8 +448,6 @@ def press(btn):
         Var.andon = False
         Var.andonCount += Var.unresponded
         Var.unresponded = 0
-        Var.andonCountMsg = str(Var.andonCount)
-        app.setLabel('TMAndon', Var.andonCountMsg)
         app.setButtonBg('TMAndonButton', GUIConfig.buttonColor)
 
     """ reject 1 part """

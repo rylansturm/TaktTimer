@@ -43,10 +43,7 @@ class TimeData:
         self.sched = []
         for i in range(len(self.available)):
             self.sched.append(self.available[i])
-            try:
-                self.sched.append(self.breaks[i])
-            except IndexError:
-                self.sched.append(datetime.datetime.combine(datetime.date.today(), datetime.time(15, 0)))
+            self.sched.append(self.breaks[i])
         self.blockSeconds = []
         for i in range(int(len(self.sched)/2)):
             self.blockSeconds.append(get_seconds(self.sched[i * 2], self.sched[i * 2 + 1]))
