@@ -54,6 +54,7 @@ class Var:
     unresponded = 0                             # number of Takt Time andons not responded to by TL
     andonCount = 0                              # total number of times operator has hit andon button
     andonCountMsg = '0'                         # for the TMAndon label, normally '%s + %s' % (andonCount, unresponded)
+    new_shift = True                            # prevents multiple calls on reset() at the shift change
     session.close()
 
 
@@ -130,6 +131,7 @@ def counting_worker():
                 print('available time')
                 print(Var.available_time)
                 print(kpi.schedule.available_time)
+                Var.new_shift = False
                 Var.shift = kpi.shift
                 read_time_file(shift=Var.shift, name=kpi.schedule.name)  # creates timedata.TimeData object as Var.sched
                 Var.demand = kpi.demand
@@ -398,7 +400,8 @@ def get_block_var():
     """ at the end of the shift, run the reset function """
     if passed == len(time_list):
         if app.yesNoBox('New Shift?', 'Start the next shift?'):
-            reset()
+            if not Var.new_shift:
+                reset()
     return passed
 
 
@@ -419,6 +422,7 @@ def reset():
     Var.andonCount = 0
     Var.andonCountMsg = '0'
     Var.kpi_id = None
+    Var.new_shift = True
 
 
 def time_elapsed():
