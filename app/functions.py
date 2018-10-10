@@ -417,8 +417,8 @@ def get_block_var():
             passed += 1
     """ at the end of the shift, run the reset function """
     if passed == len(time_list):
-        if app.yesNoBox('New Shift?', 'Start the next shift?'):
-            if not Var.new_shift:
+        if not Var.new_shift:
+            if app.yesNoBox('New Shift?', 'Start the next shift?'):
                 reset()
     return passed
 
