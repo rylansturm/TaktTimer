@@ -41,3 +41,4 @@ class GUIVar(object):
                    'Fifth', 'Sixth', 'Seventh', 'Eighth']
     target_window = 3                                           # seconds of variation acceptable per part for 'hit'
     minimum_tct = 45                                            # TCT will never dip below this value
+    buzzer_time_out = -300                                      # after how many seconds does the buzzer stop going off

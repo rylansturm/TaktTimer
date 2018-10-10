@@ -40,6 +40,8 @@ with app.tabbedFrame('Tabs'):
                 for i in range(len(timesList)):
                     app.addLabel('%sLabel' % timesList[i], timesList[i], row=0, column=i)
                     app.addLabel(timesList[i], 0, row=1, column=i)
+                app.setLabelSubmitFunction('TCTLabel', use_tct)
+                app.setLabelSubmitFunction('TCT', use_tct)
             with app.labelFrame('cycles', row=1, column=0, colspan=2, rowspan=2, hideTitle=True):
                 app.setSticky('new')
                 app.addLabel('lastCycleLabel', 'Last Cycle', row=0, column=0)

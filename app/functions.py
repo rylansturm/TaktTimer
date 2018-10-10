@@ -30,6 +30,7 @@ class Var:
     shift = 'Day'                               # current shift
     takt = 74.0                                 # takt time (float for accurate calculations, displays as int)
     tct = int(takt)                             # target cycle time ("remaining takt time")
+    using_tct = True                            # whether or not we are using a fluctuating tct
     tCycle = 0                                  # current countdown value
     partsper = int(c['Var']['partsper'])        # parts delivered per cycle
     sequence_time = int(tct * partsper)         # tct * partsper, when the sequence is expected to deliver
@@ -192,7 +193,13 @@ def run_lights():
     """ controls the andon lights. called in counting_worker """
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
 
-    if Var.block != 0:
+    if Var.block == 0:  # do nothing on breaks
+        Light.set_all(0, 0, 0)
+    elif Var.tCycle <= GUIVar.buzzer_time_out:  # stop buzzing after so many seconds, but keep red light on
+        Light.set_all(1, 0, 0)
+    else:
+        """ normal functioning during available time """
+
         """ control red light """
         if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
             if Var.now.second % 2 == 0:  # blink the red light
@@ -223,8 +230,6 @@ def run_lights():
             Light.buzzer(True)
         else:  # otherwise keep the buzzer off
             Light.buzzer(False)
-    else:
-        Light.set_all(0, 0, 0)
 
 
 def cycle():
@@ -304,7 +309,20 @@ def get_tct():
     """ Don't go higher than original Takt Time, don't go lower than GUIVar.minimum_tct """
     behind, ahead = Var.tct < GUIVar.minimum_tct, Var.tct > int(Var.takt)
     Var.tct = GUIVar.minimum_tct if behind else int(Var.takt) if ahead else Var.tct
-    return Var.tct
+    return Var.tct if Var.using_tct else int(Var.takt)
+
+
+def use_tct():
+    """ changes whether or not we are using the fluctuating TCT  ## Currently only locally set ## """
+    # TODO: make this a db column on KPI table so the TL can set it globally
+    Var.using_tct = not Var.using_tct
+    if Var.using_tct:
+        app.setLabelBg('TCTLabel', GUIConfig.appBgColor)
+        app.setLabelBg('TCT', GUIConfig.appBgColor)
+    else:
+        app.setLabelBg('TCTLabel', 'dark grey')
+        app.setLabelBg('TCT', 'dark grey')
+    recalculate()
 
 
 def label_update():
