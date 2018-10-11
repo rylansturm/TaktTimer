@@ -71,7 +71,7 @@ def update():
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
         Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
-        app.setLabel('overallStability', 'Shift Stability:\n     %.3f' % Var.overall_stability)
+        app.setLabel('overallStability', 'Shift Stability:\n      %.3f' % Var.overall_stability)
     except NoResultFound:
         print('no KPI found')
     session.close()
