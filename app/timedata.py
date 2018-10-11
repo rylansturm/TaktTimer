@@ -44,6 +44,7 @@ class TimeData:
         for i in range(len(self.available)):
             self.sched.append(self.available[i])
             self.sched.append(self.breaks[i])
+        self.end_of_shift = self.sched[-1]
         self.blockSeconds = []
         for i in range(int(len(self.sched)/2)):
             self.blockSeconds.append(get_seconds(self.sched[i * 2], self.sched[i * 2 + 1]))

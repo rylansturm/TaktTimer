@@ -154,8 +154,9 @@ def counting_worker():
 
 def counting_server():
     """ registered event for GUI instance of type: [Server, Team Lead]; runs about 5 times/second"""
+    Var.now = datetime.datetime.now()
     app.setLabel('timestamp',
-                 datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
+                 Var.now.strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
     if Var.kpi_id is None:  # if we haven't made a connection to the kpi yet:
         print('no kpi, getting one now')
         session = create_session()
@@ -166,20 +167,25 @@ def counting_server():
             Var.demand = Var.kpi.demand
             recalculate()
         except NoResultFound:  # make one if you didn't find one
-            Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
-                          demand=Var.demand, schedule=session.query(Schedule).filter(
-                    Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
-            Var.demand = Var.kpi.demand
-            session.add(Var.kpi)
-            session.commit()
-            Var.kpi_id = Var.kpi.id
-            recalculate()
+            if app.yesNoBox('New Shift?', 'Create plan for current shift?'):
+                Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
+                              demand=Var.demand, schedule=session.query(Schedule).filter(
+                        Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
+                Var.demand = Var.kpi.demand
+                session.add(Var.kpi)
+                session.commit()
+                Var.kpi_id = Var.kpi.id
+                recalculate()
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
         session.close()
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
-    Var.block = get_block_var()
+    if Var.now > Var.sched.end_of_shift:
+        Var.shift = shift_guesser()
+        app.setOptionBox('Shift: ', Var.shift)
+        app.setOptionBox('Schedule: ', 'Regular')
+        reset()
 
 
 def andon():
@@ -617,8 +623,12 @@ def determine_time_file():
     read_time_file()
     Var.schedule_edited = False
     session = create_session()
-    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
-                                    KPI.shift == shift).one()
+    try:
+        kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+                                        KPI.shift == shift).one()
+    except NoResultFound:
+        if app.yesNoBox('New Shift?', 'Create the plan for the current shift?'):
+            kpi = KPI(d=datetime.date.today(), shift=shift, demand=312)
     kpi.schedule = session.query(Schedule).filter(Schedule.name == sched, Schedule.shift == shift).one()
     session.add(kpi)
     session.commit()
