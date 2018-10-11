@@ -49,6 +49,11 @@ def update():
             app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
             app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
             app.getLabelWidget('time').config(font='arial 48')
+            try:
+                Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
+            except ZeroDivisionError:
+                Var.overall_stability = 0.0
+            app.setLabel('overallStability', 'Shift Stability:\n      %.3f' % Var.overall_stability)
             for seq in Var.sequences:
                 with app.frame('Sequence %s' % seq, colspan=2):
                     app.setSticky('ew')
@@ -70,11 +75,6 @@ def update():
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
-        try:
-            Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
-        except ZeroDivisionError:
-            Var.overall_stability = 0.0
-        app.setLabel('overallStability', 'Shift Stability:\n      %.3f' % Var.overall_stability)
     except NoResultFound:
         print('no KPI found')
     session.close()
