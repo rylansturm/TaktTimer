@@ -26,7 +26,6 @@ while True:
         c.read('install.ini')
         print('importing app at %s' % datetime.datetime.now())
         from app import app
-        app.showSplash("TaktTimer", "#65F025")
         if c['Install']['type'] == 'Worker':
             print('importing layout at %s' % datetime.datetime.now())
             from app import layout_worker

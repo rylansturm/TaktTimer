@@ -70,7 +70,10 @@ def update():
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
-        Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
+        try:
+            Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
+        except ZeroDivisionError:
+            Var.overall_stability = 'N/A'
         app.setLabel('overallStability', 'Shift Stability:\n      %.3f' % Var.overall_stability)
     except NoResultFound:
         print('no KPI found')

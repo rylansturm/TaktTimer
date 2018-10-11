@@ -6,3 +6,4 @@ try:
 except KeyError:
     app = gui(GUIConfig.title, 'fullscreen')
 app.setFont(size=GUIConfig.fontSize)
+app.showSplash("TaktTimer", "#FFFF00")
