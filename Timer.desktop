@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Timer
 Comment=TaktTimer
+Icon=/usr/share/icons/takt.png
 Exec=python3 /home/pi/TaktTimer/Timer.py
 Type=Application
 Encoding=UTF-8
