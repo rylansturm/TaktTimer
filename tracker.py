@@ -73,7 +73,7 @@ def update():
         try:
             Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
         except ZeroDivisionError:
-            Var.overall_stability = 'N/A'
+            Var.overall_stability = 0.0
         app.setLabel('overallStability', 'Shift Stability:\n      %.3f' % Var.overall_stability)
     except NoResultFound:
         print('no KPI found')
