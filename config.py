@@ -42,3 +42,4 @@ class GUIVar(object):
     target_window = 3                                           # seconds of variation acceptable per part for 'hit'
     minimum_tct = 45                                            # TCT will never dip below this value
     buzzer_time_out = -300                                      # after how many seconds does the buzzer stop going off
+    cycle_time_out = 1                                          # seconds the cycle function is disabled after press

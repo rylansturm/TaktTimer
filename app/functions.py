@@ -240,39 +240,40 @@ def run_lights():
 
 def cycle():
     """ This is what happens when the button is pushed each cycle by the operators """
-    Var.parts_delivered += Var.partsper  # add parts to the delivered quantity
-    t = Var.tCycle  # what did the timer read when we cycled?
-    Var.last_cycle = Var.sequence_time - t
-    Var.times_list.append(Var.last_cycle)
-    app.setLabel('avgCycle', int(sum(Var.times_list) / len(Var.times_list)))
-    display_cycle_times()
+    if Var.tCycle >= Var.sequence_time - GUIVar.cycle_time_out:  # helps avoid accidental button presses
+        Var.parts_delivered += Var.partsper  # add parts to the delivered quantity
+        t = Var.tCycle  # what did the timer read when we cycled?
+        Var.last_cycle = Var.sequence_time - t
+        Var.times_list.append(Var.last_cycle)
+        app.setLabel('avgCycle', int(sum(Var.times_list) / len(Var.times_list)))
+        display_cycle_times()
 
-    """ was the part delivered late, early, on time? """
-    window = GUIVar.target_window * Var.partsper
-    if t > window:
-        Var.hit = False
-        Var.early += 1
-    elif t < -window:
-        Var.hit = False
-        Var.late += 1
-    else:
-        Var.hit = True
-        Var.on_time += 1
+        """ was the part delivered late, early, on time? """
+        window = GUIVar.target_window * Var.partsper
+        if t > window:
+            Var.hit = False
+            Var.early += 1
+        elif t < -window:
+            Var.hit = False
+            Var.late += 1
+        else:
+            Var.hit = True
+            Var.on_time += 1
 
-    Var.tct = get_tct()
-    Var.sequence_time = Var.tct * Var.partsper
-    Var.tCycle = Var.sequence_time
-    app.setLabel('tCycle', countdown_format(Var.tCycle))
-    app.setLabelBg('tCycle', GUIConfig.appBgColor)
-    app.setLabel('TCT', countdown_format(Var.tct))
-    app.setLabel('Seq', countdown_format(Var.sequence_time))
-    Var.batting_avg = Var.on_time / sum([Var.on_time, Var.late, Var.early])
-    Var.mark = datetime.datetime.now()
-    yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
-    app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
-    app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
-    app.thread(data_log())  # save it! but don't make me wait on you.
+        Var.tct = get_tct()
+        Var.sequence_time = Var.tct * Var.partsper
+        Var.tCycle = Var.sequence_time
+        app.setLabel('tCycle', countdown_format(Var.tCycle))
+        app.setLabelBg('tCycle', GUIConfig.appBgColor)
+        app.setLabel('TCT', countdown_format(Var.tct))
+        app.setLabel('Seq', countdown_format(Var.sequence_time))
+        Var.batting_avg = Var.on_time / sum([Var.on_time, Var.late, Var.early])
+        Var.mark = datetime.datetime.now()
+        yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
+        app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
+        app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
+                     '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+        app.thread(data_log())  # save it! but don't make me wait on you.
 
 
 def data_log():
@@ -597,7 +598,7 @@ def shift_adjust(btn):
     Var.sched.get_sched()
     Var.sched.get_block_seconds()
     Var.sched.get_break_seconds()
-    app.setLabel('block%sTotal' % str(block), str(Var.sched.blockSeconds[block-1]) + '\nSeconds')
+    app.setLabel('block%sTotal' % str(block), str(Var.sched.blockSeconds[block-1]) + '\nSecs')
     Var.available_time = sum(Var.sched.blockSeconds)
     Var.takt = int(Var.available_time / Var.demand)
     app.setLabel('totalTime', Var.available_time)
