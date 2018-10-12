@@ -240,7 +240,7 @@ def run_lights():
 
 def cycle():
     """ This is what happens when the button is pushed each cycle by the operators """
-    if Var.tCycle >= Var.sequence_time - GUIVar.cycle_time_out:  # helps avoid accidental button presses
+    if Var.tCycle < Var.sequence_time - GUIVar.cycle_time_out:  # helps avoid accidental button presses
         Var.parts_delivered += Var.partsper  # add parts to the delivered quantity
         t = Var.tCycle  # what did the timer read when we cycled?
         Var.last_cycle = Var.sequence_time - t
