@@ -542,6 +542,7 @@ def set_sequence_number(option_box):
 
 def shift_guesser():
     """ returns the current shift based on the time """
+    Var.now = datetime.datetime.now()
     return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
         else 'Day' if Var.now.hour >= 7 else 'Grave'
 
