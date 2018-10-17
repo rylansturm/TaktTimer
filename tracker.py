@@ -102,10 +102,28 @@ def get_block_var():
     return var
 
 
+def reset():
+    Var.length = 0
+    Var.poll_count = 0
+    Var.cycles = None
+    Var.sequences = []
+    Var.kpi = None
+    Var.schedule = None
+    Var.takt = 0
+    Var.demand = 0
+    Var.tct = {}
+
+
 def time_elapsed():
     now = datetime.datetime.now()
     block = get_block_var()
-    sched = Var.schedule.return_times()
+    sched = []
+    for time in Var.schedule.return_times():
+        if time:
+            sched.append(time)
+    if block >= len(sched):
+        reset()
+        return 0
     elapsed = (now - datetime.datetime.combine(datetime.date.today(), sched[0])).total_seconds()
     for i in range(len(sched) // 2 - 1):
         if sched[2*i+2]:
