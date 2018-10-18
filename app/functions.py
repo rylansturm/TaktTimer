@@ -88,6 +88,8 @@ def counting_worker():
     if Var.started and Var.block != 0:  # if we are in 'available time'
         Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))  # expected_time - time_since_mark
         app.setLabel('tCycle', countdown_format(Var.tCycle))  # countdown_format just makes it look better
+    else:
+        app.setLabel('tCycle', 'BRK')
 
     """ control the andon tower lights """
     if GUIConfig.platform == 'linux':
@@ -96,12 +98,16 @@ def counting_worker():
     """ set the tCycle label background as a visual cue """
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
     color = app.getLabelBg('tCycle')  # what color is it right now?
-    if color != GUIConfig.targetColor and -window <= Var.tCycle <= window:  # if in the window and not the right color:
-        app.setLabelBg('tCycle', GUIConfig.targetColor)  # Let the operator know now is a good time
-    elif color != GUIConfig.andonColor and Var.tCycle < -window:  # if late and not the right color:
-        app.setLabelBg('tCycle', GUIConfig.andonColor)  # Let the operator know they failed (... I mean systems?)
-    elif color != GUIConfig.appBgColor and Var.tCycle > window:  # if not yet in the window and not the right color:
-        app.setLabelBg('tCycle', GUIConfig.appBgColor)  # Stop letting the operator know so much. Just chill.
+    if Var.block != 0:  # if we are in 'available time'
+        if color != GUIConfig.targetColor and -window <= Var.tCycle <= window:  # if in the window and not the right color:
+            app.setLabelBg('tCycle', GUIConfig.targetColor)  # Let the operator know now is a good time
+        elif color != GUIConfig.andonColor and Var.tCycle < -window:  # if late and not the right color:
+            app.setLabelBg('tCycle', GUIConfig.andonColor)  # Let the operator know they failed (... I mean systems?)
+        elif color != GUIConfig.appBgColor and Var.tCycle > window:  # if not yet in the window and not the right color:
+            app.setLabelBg('tCycle', GUIConfig.appBgColor)  # Stop letting the operator know so much. Just chill.
+    else:
+        if color != GUIConfig.break_color:
+            app.setLabelBg('tCycle', GUIConfig.break_color)
 
     """ check to see if we are reading the right KPI """
     Var.db_poll_count += 1  # auto-increment and check every db_poll_target-th time. No need to check too frequently

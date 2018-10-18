@@ -17,6 +17,7 @@ class GUIConfig(object):
     appBgColor = 'light grey'                           # overall background color
     targetColor = 'yellow'                              # color used when timers are in the target cycle window
     andonColor = 'red'                                  # color used for abnormalities (late to cycle, parts behind)
+    break_color = 'green'
     buttonColor = 'light grey'
     partsOutMeterFill = 'blue'                          # color of the meter displaying parts delivered
     timeMeterFill = 'purple'                            # color of the meter displaying time elapsed in the shift
