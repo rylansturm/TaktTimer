@@ -81,9 +81,15 @@ def update():
 
 
 def get_tct(parts_out):
-    remaining_demand = Var.demand - parts_out
-    remaining_time = Var.schedule.available_time - time_elapsed()
-    tct = remaining_time // remaining_demand
+    try:
+        remaining_demand = Var.demand - parts_out
+        remaining_time = Var.schedule.available_time - time_elapsed()
+    except AttributeError:
+        return Var.takt
+    try:
+        tct = remaining_time // remaining_demand
+    except ZeroDivisionError:
+        tct = Var.takt
     if tct < 45:
         return 45
     elif tct > Var.takt:
