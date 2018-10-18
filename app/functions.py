@@ -528,7 +528,8 @@ def menu_press(btn):
         key_press('<F11>')
     elif btn == 'Exit':
         app.stop()
-
+    elif btn == 'Run Tracker':
+        os.system('ssh pi@192.168.42.1 < ./run-tracker.sh&')
 
 def set_sequence_number(option_box):
     """ sets the sequence number as an identifier (should be unique in the cell) """
