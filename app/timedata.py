@@ -48,7 +48,7 @@ class TimeData:
         self.blockSeconds = []
         for i in range(int(len(self.sched)/2)):
             self.blockSeconds.append(get_seconds(self.sched[i * 2], self.sched[i * 2 + 1]))
-        self.available_time = sum(self.blockSeconds)
+        self.available_time = sum(self.blockSeconds) + (86400 if self.available_time < 0 else 0)
         self.breakSeconds = []
         for i in range(int(len(self.sched)/2 - 1)):
             self.breakSeconds.append(get_seconds(self.sched[i * 2 + 1], self.sched[i * 2 + 2]))
