@@ -32,7 +32,7 @@ session = create_session()
 
 def update():
     try:
-        if shift_guesser() == 'Grave' and datetime.datetime.now() < Var.schedule.return_times()[0]:
+        if shift_guesser() == 'Grave' and datetime.datetime.time(datetime.datetime.now()) < datetime.time(12, 0):
             date = datetime.date.today() - datetime.timedelta(days=1)
         else:
             date = datetime.date.today()
