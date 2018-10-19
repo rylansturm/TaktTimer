@@ -195,12 +195,12 @@ def counting_server():
         session.close()
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
-    if Var.now > Var.sched.end_of_shift:
-        if datetime.datetime.time(Var.now) < datetime.time(12, 0):
-            Var.shift = shift_guesser()
-            app.setOptionBox('Shift: ', Var.shift)
-            app.setOptionBox('Schedule: ', 'Regular')
-            reset()
+    # if Var.now > Var.sched.end_of_shift:
+    #     if datetime.datetime.time(Var.now) < datetime.time(12, 0):
+    #         Var.shift = shift_guesser()
+    #         app.setOptionBox('Shift: ', Var.shift)
+    #         app.setOptionBox('Schedule: ', 'Regular')
+    #         reset()
 
 
 def andon():
