@@ -478,6 +478,7 @@ def time_elapsed():
         elapsed -= (Var.sched.breakSeconds[i] if block/2 > i+1 else 0)
     if block % 2 == 0:  # if its currently break, just keep subtracting however long it has been break
         elapsed -= (now - Var.sched.sched[block - 1]).total_seconds()
+    elapsed += (86400 if elapsed < 0 else 0)
     return elapsed
 
 
