@@ -99,7 +99,7 @@ def counting_worker():
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
     color = app.getLabelBg('tCycle')  # what color is it right now?
     if Var.block != 0:  # if we are in 'available time'
-        if color != GUIConfig.targetColor and -window <= Var.tCycle <= window:  # if in the window and not the right color:
+        if color != GUIConfig.targetColor and -window <= Var.tCycle <= window:  # if in the window and not right color:
             app.setLabelBg('tCycle', GUIConfig.targetColor)  # Let the operator know now is a good time
         elif color != GUIConfig.andonColor and Var.tCycle < -window:  # if late and not the right color:
             app.setLabelBg('tCycle', GUIConfig.andonColor)  # Let the operator know they failed (... I mean systems?)
@@ -424,10 +424,19 @@ def get_block_var():
         '1' during first block, '2' during first break, '3' during block 2, etc. """
     time_list = Var.sched.sched
     passed = 0
-    """ iterate through each time in the schedule, and increment the 'passed' variable if the time has passed """
-    for time in time_list:
-        if Var.now > time:
-            passed += 1
+    if shift_guesser() == 'Grave':  # Grave crosses a date change, so is handled differently
+        if Var.now > time_list[0]:
+            return 1
+        else:
+            passed = 1
+            for time in time_list[1:]:
+                if Var.now > time:
+                    passed += 1
+    else:  # for Day and Swing
+        """ iterate through each time in the schedule, and increment the 'passed' variable if the time has passed """
+        for time in time_list:
+            if Var.now > time:
+                passed += 1
     """ at the end of the shift, run the reset function """
     if passed == len(time_list):
         if not Var.new_shift:
