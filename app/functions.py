@@ -195,12 +195,12 @@ def counting_server():
         session.close()
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
-    # if Var.now > Var.sched.end_of_shift:
-    #     if datetime.datetime.time(Var.now) < datetime.time(12, 0):
-    #         Var.shift = shift_guesser()
-    #         app.setOptionBox('Shift: ', Var.shift)
-    #         app.setOptionBox('Schedule: ', 'Regular')
-    #         reset()
+    if Var.now > Var.sched.end_of_shift:
+        if datetime.datetime.time(Var.now) < datetime.time(12, 0):
+            Var.shift = shift_guesser()
+            app.setOptionBox('Shift: ', Var.shift)
+            app.setOptionBox('Schedule: ', 'Regular')
+            reset()
 
 
 def andon():
@@ -652,7 +652,11 @@ def determine_time_file():
     Var.schedule_edited = False
     session = create_session()
     try:
-        kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+        if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7, 0):
+            date = datetime.date.today() - datetime.timedelta(days=1)
+        else:
+            date = datetime.date.today()
+        kpi = session.query(KPI).filter(KPI.d == date,
                                         KPI.shift == shift).one()
     except NoResultFound:
         if app.yesNoBox('New Shift?', 'Create the plan for the current shift?'):
