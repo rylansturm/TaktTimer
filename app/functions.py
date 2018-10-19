@@ -114,8 +114,12 @@ def counting_worker():
     if Var.db_poll_count == Var.db_poll_target:  # every db_poll_target-th time
         session = create_session()
         try:  # there should one (only one) kpi that matches. If not, go to the exception.
+            if shift_guesser() == 'Grave' and get_block_var() > 1:
+                date = datetime.date.today() - datetime.timedelta(days=1)
+            else:
+                date = datetime.date.today()
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
-                                            KPI.d == datetime.date.today()).one()  # the kpi for today, this shift
+                                            KPI.d == date).one()  # the kpi for today, this shift
             seq = session.query(Cycles.seq).filter(Cycles.kpi == kpi).all()  # all the active sequences on this kpi
             """ if the info we have does not match what's on the kpi, update the kpi """
             if Var.shift != kpi.shift or \
