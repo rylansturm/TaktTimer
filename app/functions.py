@@ -171,7 +171,11 @@ def counting_server():
         print('no kpi, getting one now')
         session = create_session()
         try:  # try to get the existing kpi, don't make one unless there isn't one already
-            Var.kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
+            if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7, 0):
+                date = datetime.date.today() - datetime.timedelta(days=1)
+            else:
+                date = datetime.date.today()
+            Var.kpi = session.query(KPI).filter(KPI.d == date,
                                                 KPI.shift == shift_guesser()).one()
             Var.kpi_id = Var.kpi.id
             Var.demand = Var.kpi.demand
@@ -192,10 +196,11 @@ def counting_server():
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
     if Var.now > Var.sched.end_of_shift:
-        Var.shift = shift_guesser()
-        app.setOptionBox('Shift: ', Var.shift)
-        app.setOptionBox('Schedule: ', 'Regular')
-        reset()
+        if datetime.datetime.time(Var.now) < datetime.time(12, 0):
+            Var.shift = shift_guesser()
+            app.setOptionBox('Shift: ', Var.shift)
+            app.setOptionBox('Schedule: ', 'Regular')
+            reset()
 
 
 def andon():
