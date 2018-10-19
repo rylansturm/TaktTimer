@@ -114,7 +114,7 @@ def counting_worker():
     if Var.db_poll_count == Var.db_poll_target:  # every db_poll_target-th time
         session = create_session()
         try:  # there should one (only one) kpi that matches. If not, go to the exception.
-            if shift_guesser() == 'Grave' and get_block_var() > 1:
+            if shift_guesser() == 'Grave' and Var.now < Var.sched.sched[-1]:
                 date = datetime.date.today() - datetime.timedelta(days=1)
             else:
                 date = datetime.date.today()
