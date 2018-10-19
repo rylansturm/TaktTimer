@@ -99,11 +99,23 @@ def get_tct(parts_out):
 
 
 def get_block_var():
-    sched = Var.schedule.return_times()
-    var = 0
-    for time in sched:
+    now = datetime.datetime.time(datetime.datetime.now())
+    sched = []
+    for time in Var.schedule.return_times():
         if time:
-            if datetime.datetime.time(datetime.datetime.now()) > time:
+            sched.append(time)
+    var = 0
+    if shift_guesser() == 'Grave':
+        if now > sched[0]:
+            return 1
+        else:
+            var = 1
+            for time in sched[1:]:
+                if now > time:
+                    var += 1
+    else:
+        for time in sched:
+            if now > time:
                 var += 1
     return var
 
