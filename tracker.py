@@ -32,8 +32,12 @@ session = create_session()
 
 def update():
     try:
+        if shift_guesser() == 'Grave' and datetime.datetime.now() < Var.schedule.return_times()[0]:
+            date = datetime.date.today() - datetime.timedelta(days=1)
+        else:
+            date = datetime.date.today()
         kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
-                                        KPI.d == datetime.date.today()).one()
+                                        KPI.d == date).one()
         if Var.kpi != kpi:
             Var.kpi = kpi
             Var.schedule = kpi.schedule
@@ -151,6 +155,7 @@ def time_elapsed():
                 elapsed -= seconds_in_break
     if block % 2 == 0:
         elapsed -= (now - datetime.datetime.combine(datetime.date.today(), sched[block - 1])).total_seconds()
+    elapsed += (86400 if elapsed < 0 else 0)
     return elapsed
 
 
