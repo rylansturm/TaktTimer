@@ -190,17 +190,21 @@ def counting_server():
                 session.commit()
                 Var.kpi_id = Var.kpi.id
                 recalculate()
+        Var.schedule_times = []
+        for time in Var.kpi.schedule.return_times():
+            if time:
+                Var.schedule_times.append(time)
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
         session.close()
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
-    if Var.now > Var.sched.end_of_shift:
-        if datetime.datetime.time(Var.now) < datetime.time(12, 0):
-            Var.shift = shift_guesser()
-            app.setOptionBox('Shift: ', Var.shift)
-            app.setOptionBox('Schedule: ', 'Regular')
-            reset()
+    if (datetime.datetime.time(Var.now) > Var.schedule_times[-1] > Var.schedule_times[0]) or\
+            Var.schedule_times[0] > datetime.datetime.time(Var.now) > Var.schedule_times[-1]:
+        Var.shift = shift_guesser()
+        app.setOptionBox('Shift: ', Var.shift)
+        app.setOptionBox('Schedule: ', 'Regular')
+        reset()
 
 
 def andon():
@@ -555,6 +559,7 @@ def menu_press(btn):
         app.stop()
     elif btn == 'Run Tracker':
         os.system('ssh pi@192.168.42.1 < ./run-tracker.sh&')
+
 
 def set_sequence_number(option_box):
     """ sets the sequence number as an identifier (should be unique in the cell) """

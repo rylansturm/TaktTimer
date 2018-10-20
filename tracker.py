@@ -26,6 +26,7 @@ class Var:
     takt = 0
     demand = 0
     tct = {}
+    breaktime = False
 
 
 def shift_guesser():
@@ -121,7 +122,7 @@ def get_block_var():
     var = 0
     if shift_guesser() == 'Grave':
         if now > sched[0]:
-            return 1
+            var = 1
         else:
             var = 1
             for time in sched[1:]:
@@ -131,6 +132,7 @@ def get_block_var():
         for time in sched:
             if now > time:
                 var += 1
+    Var.breaktime = True if var % 2 == 0 else False
     return var
 
 
