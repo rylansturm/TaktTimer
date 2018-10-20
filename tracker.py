@@ -12,6 +12,15 @@ class Var:
     poll_count = 0
     cycles = None
     sequences = []
+    labels = {1: 'Curtis:   Assembly',
+              2: 'Sean:      Presses',
+              3: 'Kambreea:  Blaster',
+              4: 'Cliff:      Lapper',
+              5: 'Albert:   Pre-Size',
+              6: 'Marissa:    Bonder',
+              7: 'Shawn:  Pre-Finish',
+              8: 'Jaxon:     Chamfer',
+              }
     kpi = None
     schedule = None
     takt = 0
@@ -71,11 +80,12 @@ def update():
                     app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
                     app.addLabel('seq%sCurrent' % seq, 'current', 2, 3)
         for seq in Var.sequences:
+            label = Var.labels[seq] if shift_guesser() == 'Swing' else seq
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
             avg = '%.3f' % (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()))
             app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
-                         'Sequence %s: (%s / %s) / %s' %
-                         (seq, seq_cycles.first().delivered, int(time_elapsed() // Var.takt), Var.kpi.demand))
+                         '%s: (%s / %s) / %s' %
+                         (label, seq_cycles.first().delivered, int(time_elapsed() // Var.takt), Var.kpi.demand))
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
