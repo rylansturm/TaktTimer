@@ -96,8 +96,7 @@ def update():
         try:
             app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
             app.setLabel('onOffTrackLabel',
-                         'Current Expectation: %s\n\t  Demand: %s' % (int(time_elapsed() // Var.takt),
-                                                                           Var.demand))
+                         'Current Expectation: %s\n\t  Demand: %s' % (int(time_elapsed() // Var.takt), Var.demand))
         except ItemLookupError:
             pass
     except NoResultFound:
@@ -195,7 +194,7 @@ def counting():
         cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
         tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
         if get_block_var() % 2 != 0:
-            app.setLabel('seq%sCurrent' % seq, tCycle)
+            app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % tCycle)
             if tCycle < 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.andonColor:
                 app.setLabelBg('seq%sCurrent' % seq, GUIConfig.andonColor)
             if tCycle > 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.appBgColor:
