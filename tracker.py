@@ -62,34 +62,44 @@ def update():
             app.removeAllWidgets()
             app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
             app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
+            app.addLabel('onOffTrackLabel', 'Current Expectation: 0\n Demand: 0', colspan=2)
             app.getLabelWidget('time').config(font='arial 48')
             try:
-                Var.overall_stability = len(Var.cycles.filter(Cycles.hit == 1).all()) / len(Var.cycles.all())
+                Var.overall_stability = (len(Var.cycles.filter(Cycles.hit == 1).all()) /
+                                         len(Var.cycles.all())) * 100
             except ZeroDivisionError:
                 Var.overall_stability = 0.0
-            app.setLabel('overallStability', 'Shift Stability:\n      %.3f' % Var.overall_stability)
+            app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
             for seq in Var.sequences:
                 with app.frame('Sequence %s' % seq, colspan=2):
                     app.setSticky('ew')
                     app.addMeter('seq%sMeter' % seq, row=0, column=0, colspan=4)
                     app.setMeterFill('seq%sMeter' % seq, 'green')
                     app.setMeterHeight('seq%sMeter' % seq, 500/Var.length-Var.length*2)
-                    app.addLabel('seq%sAVGLabel' % seq, 'Stability: ', 1, 0)
-                    app.addLabel('seq%sAVG' % seq, 'avg', 2, 0)
+                    # app.addLabel('seq%sAVGLabel' % seq, 'Stability: ', 1, 0)
+                    app.addLabel('seq%sAVG' % seq, 'On Time Delivery: 0%', 2, 0)
                     # app.addLabel('seq%sEarlyLateLabel' % seq, 'Early - Late', 1, 2)
                     # app.addLabel('seq%sEarlyLate' % seq, 'early-late', 2, 2)
-                    app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
-                    app.addLabel('seq%sCurrent' % seq, 'current', 2, 3)
+                    # app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
+                    app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 2, 3)
         for seq in Var.sequences:
             label = Var.labels[seq] if shift_guesser() == 'Swing' else seq
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
-            avg = '%.3f' % (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()))
+            avg = 'On Time Delivery %i%%' % \
+                  (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
             app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
-                         '%s: (%s / %s) / %s' %
-                         (label, seq_cycles.first().delivered, int(time_elapsed() // Var.takt), Var.kpi.demand))
+                         '%s:     %s' %
+                         (label, seq_cycles.first().delivered))
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
+        try:
+            app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
+            app.setLabel('onOffTrackLabel',
+                         'Current Expectation: %s\n\t  Demand: %s' % (int(time_elapsed() // Var.takt),
+                                                                           Var.demand))
+        except ItemLookupError:
+            pass
     except NoResultFound:
         print('no KPI found')
     session.close()
