@@ -12,21 +12,31 @@ class Var:
     poll_count = 0
     cycles = None
     sequences = []
-    labels = {1: 'Curtis:   Assembly',
-              2: 'Sean:      Presses',
-              3: 'Kambreea:  Blaster',
-              4: 'Cliff:      Lapper',
-              5: 'Albert:   Pre-Size',
-              6: 'Marissa:    Bonder',
-              7: 'Shawn:  Pre-Finish',
-              8: 'Jaxon:     Chamfer',
-              }
+    labels_swing = {1: 'Curtis:   Assembly',
+                    2: 'Sean:      Presses',
+                    3: 'Kambreea:  Blaster',
+                    4: 'Cliff:      Lapper',
+                    5: 'Albert:   Pre-Size',
+                    6: 'Marissa:    Bonder',
+                    7: 'Shawn:  Pre-Finish',
+                    8: 'Jaxon:     Chamfer',
+                    }
+    labels_day = {1: 'Assembly',
+                  2: 'Presses',
+                  3: 'Blaster',
+                  4: 'Lapper',
+                  5: 'Pre-Size',
+                  6: 'Bonder',
+                  7: 'Pre-Finish',
+                  8: 'Chamfer',
+                  }
     kpi = None
     schedule = None
     takt = 0
     demand = 0
     tct = {}
     breaktime = False
+    overall_stability = 0.0
 
 
 def shift_guesser():
@@ -83,7 +93,7 @@ def update():
                     # app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
                     app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 2, 3)
         for seq in Var.sequences:
-            label = Var.labels[seq] if shift_guesser() == 'Swing' else seq
+            label = Var.labels_swing[seq] if shift_guesser() == 'Swing' else Var.labels_day[seq]
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
             avg = 'On Time Delivery %i%%' % \
                   (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
