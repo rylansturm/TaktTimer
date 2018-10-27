@@ -92,14 +92,18 @@ def update():
                     # app.addLabel('seq%sEarlyLate' % seq, 'early-late', 2, 2)
                     # app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
                     app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 2, 3)
+        expected = int(time_elapsed() // Var.takt)
         for seq in Var.sequences:
             label = Var.labels_swing[seq] if shift_guesser() == 'Swing' else Var.labels_day[seq]
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
+            delivered = seq_cycles.first().delivered
+            ahead = delivered - expected
+            ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
             avg = 'On Time Delivery %i%%' % \
                   (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
             app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
-                         '%s:     %s' %
-                         (label, seq_cycles.first().delivered))
+                         '%s:     %s  (%s)' %
+                         (label, delivered, ahead))
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
@@ -199,7 +203,7 @@ def counting():
     Var.poll_count += 1
     if Var.poll_count == 15:
         Var.poll_count = 0
-        update()
+        update
     for seq in Var.sequences:
         cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
         tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
