@@ -203,7 +203,7 @@ def counting():
     Var.poll_count += 1
     if Var.poll_count == 15:
         Var.poll_count = 0
-        update
+        update()
     for seq in Var.sequences:
         cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
         tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
