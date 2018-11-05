@@ -30,6 +30,7 @@ class Var:
     shift = 'Day'                               # current shift
     takt = 74.0                                 # takt time (float for accurate calculations, displays as int)
     tct = int(takt)                             # target cycle time ("remaining takt time")
+    tct_from_kpi = None
     using_tct = True                            # whether or not we are using a fluctuating tct
     tCycle = 0                                  # current countdown value
     partsper = int(c['Var']['partsper'])        # parts delivered per cycle
@@ -335,7 +336,18 @@ def get_tct():
     """ Don't go higher than original Takt Time, don't go lower than GUIVar.minimum_tct """
     behind, ahead = Var.tct < GUIVar.minimum_tct, Var.tct > int(Var.takt)
     Var.tct = GUIVar.minimum_tct if behind else int(Var.takt) if ahead else Var.tct
-    return Var.tct if Var.using_tct else int(Var.takt)
+    return Var.tct if not Var.tct_from_kpi else int(Var.tct_from_kpi)
+
+
+def log_tct(btn):
+    tct = app.getEntry('plan_cycle')
+    tct = tct if tct else None
+    Var.tct_from_kpi = tct
+    session = create_session()
+    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(), KPI.shift == shift_guesser()).first()
+    kpi.plan_cycle_time = tct
+    session.add(kpi)
+    session.commit()
 
 
 def use_tct():
@@ -523,7 +535,11 @@ def recalculate():
     Var.available_time = sum(Var.sched.blockSeconds)
     # Var.demand = int(app.getEntry('demand'))
     Var.takt = Var.available_time / Var.demand
+    session = create_session()
+    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(), KPI.shift == shift_guesser()).first()
+    Var.tct_from_kpi = kpi.plan_cycle_time
     Var.tct = get_tct()
+    session.close()
     try:  # these labels only exist on the worker type
         # Var.partsper = int(app.getEntry('partsper'))
         Var.sequence_time = Var.tct * Var.partsper

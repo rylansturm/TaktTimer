@@ -9,7 +9,7 @@ Base = declarative_base()
 if GUIConfig.platform == 'win32':
     engine = create_engine('sqlite:///app.db')
 else:
-    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.1/timers')
+    engine = create_engine()
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 
@@ -84,6 +84,7 @@ class KPI(Base):
     delivered = Column(Integer)
     schedule_id = Column(Integer, ForeignKey('schedule.id'))
     schedule = relationship(Schedule)
+    plan_cycle_time = Column(Integer)
 
     def __repr__(self):
         return "<KPI for %s shift on %s>" % (self.shift, self.d)
@@ -103,6 +104,31 @@ class Cycles(Base):
 
     def __repr__(self):
         return "<Cycle Object %s for seq %s>" % (self.cycle_time, self.seq)
+
+
+class Operators(Base):
+    __tablename__ = 'operators'
+    id = Column(Integer, primary_key=True)
+    play_name = Column(String(50))
+    op_1 = Column(String(50))
+    op_2 = Column(String(50))
+    op_3 = Column(String(50))
+    op_4 = Column(String(50))
+    op_5 = Column(String(50))
+    op_6 = Column(String(50))
+    op_7 = Column(String(50))
+    op_8 = Column(String(50))
+    op_9 = Column(String(50))
+    op_10 = Column(String(50))
+
+    def get_list(self, op_1=None, op_2=None, op_3=None, op_4=None, op_5=None,
+                 op_6=None, op_7=None, op_8=None, op_9=None, op_10=None):
+        self.op_1, self.op_2, self.op_3, self.op_4, self.op_5,\
+            self.op_6, self.op_7, self.op_8, self.op_9, self.op_10 =\
+            op_1, op_2, op_3, op_4, op_5, op_6, op_7, op_8, op_9, op_10
+
+    def __repr__(self):
+        return "<Operators Object>"
 
 
 def create_db():
