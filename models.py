@@ -9,7 +9,7 @@ Base = declarative_base()
 if GUIConfig.platform == 'win32':
     engine = create_engine('sqlite:///app.db')
 else:
-    engine = create_engine()
+    engine = create_engine('mysql+pymysql://worker:IYNFYLTalladega@192.168.42.1/timers')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 
