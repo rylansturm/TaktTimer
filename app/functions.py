@@ -695,8 +695,7 @@ def determine_time_file():
         kpi = session.query(KPI).filter(KPI.d == date,
                                         KPI.shift == shift).one()
     except NoResultFound:
-        if app.yesNoBox('New Shift?', 'Create the plan for the current shift?'):
-            kpi = KPI(d=datetime.date.today(), shift=shift, demand=312)
+        kpi = KPI(d=datetime.date.today(), shift=shift, demand=312)
     kpi.schedule = session.query(Schedule).filter(Schedule.name == sched, Schedule.shift == shift).one()
     session.add(kpi)
     session.commit()
