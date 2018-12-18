@@ -67,8 +67,10 @@ with app.tabbedFrame('Tabs'):
         app.addLabel('plan_cycle_label', 'TCT')
         app.addButton('tct_up', set_tct)
         app.addNumericEntry('plan_cycle')
+        app.setEntry('plan_cycle', 60)
         app.addButton('tct_down', set_tct)
         app.addButton('log_tct', log_tct)
+        app.addButton('remove_tct', log_tct)
 print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.time_open).total_seconds())
 read_time_file(shift=Var.shift, name=Var.sched.name)
 

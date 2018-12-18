@@ -344,12 +344,16 @@ def get_tct():
 
 def set_tct(btn):
     if btn == 'tct_up':
-        app.setEntry('plan_cycle', int(app.getEntry('plan_cycle'))+1)
+        app.setEntry('plan_cycle', int(app.getEntry('plan_cycle')) + 1)
+    if btn == 'tct_down':
+        app.setEntry('plan_cycle', int(app.getEntry('plan_cycle')) - 1)
 
 
 def log_tct(btn):
     tct = app.getEntry('plan_cycle')
     tct = tct if tct else None
+    if btn == 'remove_tct':
+        tct = None
     Var.tct_from_kpi = tct
     session = create_session()
     kpi = session.query(KPI).filter(KPI.d == datetime.date.today(), KPI.shift == shift_guesser()).first()
