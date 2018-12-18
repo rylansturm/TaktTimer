@@ -182,15 +182,18 @@ def counting_server():
             Var.demand = Var.kpi.demand
             recalculate()
         except NoResultFound:  # make one if you didn't find one
-            if app.yesNoBox('New Shift?', 'Create plan for current shift?'):
-                Var.kpi = KPI(d=datetime.date.today(), shift=shift_guesser(),
-                              demand=Var.demand, schedule=session.query(Schedule).filter(
-                        Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
-                Var.demand = Var.kpi.demand
-                session.add(Var.kpi)
-                session.commit()
-                Var.kpi_id = Var.kpi.id
-                recalculate()
+            if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7, 0):
+                date = datetime.date.today() - datetime.timedelta(days=1)
+            else:
+                date = datetime.date.today()
+            Var.kpi = KPI(d=date, shift=shift_guesser(),
+                          demand=Var.demand, schedule=session.query(Schedule).filter(
+                    Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
+            Var.demand = Var.kpi.demand
+            session.add(Var.kpi)
+            session.commit()
+            Var.kpi_id = Var.kpi.id
+            recalculate()
         Var.schedule_times = []
         for time in Var.kpi.schedule.return_times():
             if time:
@@ -339,6 +342,11 @@ def get_tct():
     return Var.tct if not Var.tct_from_kpi else int(Var.tct_from_kpi)
 
 
+def set_tct(btn):
+    if btn == 'tct_up':
+        app.setEntry('plan_cycle', int(app.getEntry('plan_cycle'))+1)
+
+
 def log_tct(btn):
     tct = app.getEntry('plan_cycle')
     tct = tct if tct else None
@@ -450,8 +458,12 @@ def get_block_var():
     time_list = Var.sched.sched
     passed = 0
     if shift_guesser() == 'Grave':  # Grave crosses a date change, so is handled differently
-        if Var.now > time_list[0]:
-            return 1
+        if Var.now > time_list[-1]:
+            if Var.now < time_list[0]:
+                if not Var.new_shift:
+                    reset()
+            else:
+                return 1
         else:
             passed = 1
             for time in time_list[1:]:
@@ -465,8 +477,7 @@ def get_block_var():
     """ at the end of the shift, run the reset function """
     if passed == len(time_list):
         if not Var.new_shift:
-            if app.yesNoBox('New Shift?', 'Start the next shift?'):
-                reset()
+            reset()
     return passed
 
 
