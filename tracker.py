@@ -12,14 +12,14 @@ class Var:
     poll_count = 0
     cycles = None
     sequences = []
-    labels_swing = {1: 'Curtis:   Assembly',
-                    2: 'Sean:      Presses',
-                    3: 'Kambreea:  Blaster',
-                    4: 'Cliff:      Lapper',
-                    5: 'Albert:   Pre-Size',
-                    6: 'Marissa:    Bonder',
-                    7: 'Shawn:  Pre-Finish',
-                    8: 'Jaxon:     Chamfer',
+    labels_swing = {1: 'Assembly',
+                    2: 'Presses',
+                    3: 'Blaster',
+                    4: 'Lapper',
+                    5: 'Pre-Size',
+                    6: 'Bonder',
+                    7: 'Pre-Finish',
+                    8: 'Chamfer',
                     }
     labels_day = {1: 'Assembly',
                   2: 'Presses',
