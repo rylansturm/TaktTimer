@@ -204,7 +204,7 @@ def counting_server():
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
     if (datetime.datetime.time(Var.now) > Var.schedule_times[-1] > Var.schedule_times[0]) or\
-            Var.schedule_times[0] > datetime.datetime.time(Var.now) > Var.schedule_times[-1]:
+            datetime.time(23) > datetime.datetime.time(Var.now) > Var.schedule_times[-1]:
         Var.shift = shift_guesser()
         app.setOptionBox('Shift: ', Var.shift)
         app.setOptionBox('Schedule: ', 'Regular')
