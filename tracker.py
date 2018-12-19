@@ -92,7 +92,10 @@ def update():
                     # app.addLabel('seq%sEarlyLate' % seq, 'early-late', 2, 2)
                     # app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
                     app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 2, 3)
-        expected = int(time_elapsed() // Var.takt)
+        try:
+            expected = int(time_elapsed() // Var.takt)
+        except ZeroDivisionError:
+            expected = 0
         for seq in Var.sequences:
             label = Var.labels_swing[seq] if shift_guesser() == 'Swing' else Var.labels_day[seq]
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
