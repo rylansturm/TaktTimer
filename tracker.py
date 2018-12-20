@@ -8,7 +8,7 @@ import datetime
 
 
 class Var:
-    length = 0
+    length = 1
     poll_count = 0
     cycles = None
     sequences = []
