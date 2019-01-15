@@ -61,7 +61,10 @@ def update():
         if Var.kpi != kpi:
             Var.kpi = kpi
             Var.schedule = kpi.schedule
-            Var.takt = Var.kpi.schedule.available_time / Var.kpi.demand
+            try:
+                Var.takt = Var.kpi.schedule.available_time / Var.kpi.demand
+            except ZeroDivisionError:
+                Var.takt = 60
             Var.demand = Var.kpi.demand
         Var.cycles = session.query(Cycles).filter(Cycles.kpi_id == Var.kpi.id)
         Var.sequences = []
@@ -82,10 +85,14 @@ def update():
             app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
             for seq in Var.sequences:
                 with app.frame('Sequence %s' % seq, colspan=2):
+                    try:
+                        height = 500/Var.length-Var.length*2
+                    except ZeroDivisionError:
+                        height = 100
                     app.setSticky('ew')
                     app.addMeter('seq%sMeter' % seq, row=0, column=0, colspan=4)
                     app.setMeterFill('seq%sMeter' % seq, 'green')
-                    app.setMeterHeight('seq%sMeter' % seq, 500/Var.length-Var.length*2)
+                    app.setMeterHeight('seq%sMeter' % seq, height)
                     # app.addLabel('seq%sAVGLabel' % seq, 'Stability: ', 1, 0)
                     app.addLabel('seq%sAVG' % seq, 'On Time Delivery: 0%', 2, 0)
                     # app.addLabel('seq%sEarlyLateLabel' % seq, 'Early - Late', 1, 2)
@@ -95,18 +102,24 @@ def update():
         try:
             expected = int(time_elapsed() // Var.takt)
         except ZeroDivisionError:
-            expected = 0
+            expected = 1
         for seq in Var.sequences:
             label = Var.labels_swing[seq] if shift_guesser() == 'Swing' else Var.labels_day[seq]
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
             delivered = seq_cycles.first().delivered
             ahead = delivered - expected
             ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
-            avg = 'On Time Delivery %i%%' % \
-                  (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
-            app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
-                         '%s:     %s  (%s)' %
-                         (label, delivered, ahead))
+            try:
+                avg = 'On Time Delivery %i%%' % \
+                      (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
+            except ZeroDivisionError:
+                avg = 'On Time Delivery 0%%'
+            try:
+                app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
+                             '%s:     %s  (%s)' %
+                             (label, delivered, ahead))
+            except ZeroDivisionError:
+                app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
             app.setLabel('seq%sAVG' % seq, avg)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
             Var.tct[seq] = get_tct(seq_cycles.first().delivered)
@@ -114,7 +127,7 @@ def update():
             app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
             app.setLabel('onOffTrackLabel',
                          'Current Expectation: %s\n\t  Demand: %s' % (int(time_elapsed() // Var.takt), Var.demand))
-        except ItemLookupError:
+        except ItemLookupError or ZeroDivisionError:
             pass
     except NoResultFound:
         print('no KPI found')
