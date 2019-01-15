@@ -11,9 +11,11 @@ app.addMenuList('Options', ['Run Tracker'], menu_press)
 print('creating tabs for server')
 # Tabbed Frame that holds the whole GUI #
 with app.tabbedFrame('Tabs'):
+    app.setBg(GUIConfig.appBgColor)
 
     # Setup tab #
     with app.tab('Time'):
+        app.setBg(GUIConfig.appBgColor)
         with app.frame('Presets', row=0, column=0):
             app.setSticky('new')
             app.setBg(GUIConfig.appBgColor)
@@ -64,6 +66,7 @@ with app.tabbedFrame('Tabs'):
                     app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
                     # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
     with app.tab('Test'):
+        app.setBg(GUIConfig.appBgColor)
         app.addLabel('plan_cycle_label', 'TCT')
         app.addButton('tct_up', set_tct)
         app.addNumericEntry('plan_cycle')
