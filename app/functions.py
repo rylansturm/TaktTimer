@@ -466,6 +466,8 @@ def get_block_var():
             if Var.now < time_list[0]:
                 if not Var.new_shift:
                     reset()
+                else:
+                    passed = 0
             else:
                 return 1
         else:
