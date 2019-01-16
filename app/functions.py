@@ -554,7 +554,8 @@ def recalculate():
     Var.takt = Var.available_time / Var.demand
     session = create_session()
     kpi = session.query(KPI).filter(KPI.d == datetime.date.today(), KPI.shift == shift_guesser()).first()
-    Var.tct_from_kpi = kpi.plan_cycle_time
+    if kpi:
+        Var.tct_from_kpi = kpi.plan_cycle_time
     Var.tct = get_tct()
     session.close()
     try:  # these labels only exist on the worker type
