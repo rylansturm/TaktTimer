@@ -654,8 +654,10 @@ def shift_adjust(btn):
                                                           " + (increment if direction == 'UP' else -increment))")
     new_schedule.get_available_time()
     session.add(new_schedule)
-    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
-                                    KPI.shift == shift_guesser()).one()
+    date = datetime.date.today()
+    if datetime.datetime.time(datetime.datetime.now()) < datetime.time(7):
+        date -= datetime.timedelta(1)
+    kpi = session.query(KPI).filter(KPI.d == date, KPI.shift == shift_guesser()).one()
     kpi.schedule = new_schedule
     Var.kpi = kpi
     session.add(kpi)
