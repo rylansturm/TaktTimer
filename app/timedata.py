@@ -4,9 +4,12 @@ from models import *
 from config import *
 
 
-def convert(value):
-    """ returns datetime object from '%H:%M' format found in .ini """
-    var = datetime.datetime.combine(datetime.date.today(), value)
+def convert(date, time):
+    """ changes time objects from schedule into datetime objects for specific shift
+        allows for the date change with grave shift """
+    if time.hour < 7:
+        date += datetime.timedelta(1)
+    var = datetime.datetime.combine(date, time)
     return var
 
 
@@ -18,7 +21,7 @@ def get_seconds(time1, time2):
 
 
 class TimeData:
-    def __init__(self, shift: str='Day', name: str='Regular'):
+    def __init__(self, shift: str = 'Day', name: str = 'Regular'):
         print('initializing TimeData object')
         session = create_session()
         s = session.query(Schedule).filter(Schedule.shift == shift, Schedule.name == name).one()
@@ -27,16 +30,21 @@ class TimeData:
         self.id = s.id
         self.name = s.name
         self.available = []
-        for i in [s.start1, s.start2, s.start3, s.start4, s.start5, s.start6, s.start7, s.start8]:
+        date = datetime.date.today()
+        if shift == 'Grave' and datetime.datetime.now().hour < 7:
+            date -= datetime.timedelta(1)
+        else:
+            date = datetime.date.today()
+        for time in [s.start1, s.start2, s.start3, s.start4, s.start5, s.start6, s.start7, s.start8]:
             try:
-                self.available.append(convert(i))
+                self.available.append(convert(date, time))
             except TypeError:
                 pass
         print('adding %s to available list' % self.available)
         self.breaks = []
-        for i in [s.end1, s.end2, s.end3, s.end4, s.end5, s.end6, s.end7, s.end8]:
+        for time in [s.end1, s.end2, s.end3, s.end4, s.end5, s.end6, s.end7, s.end8]:
             try:
-                self.breaks.append(convert(i))
+                self.breaks.append(convert(date, time))
             except TypeError:
                 pass
         print('adding %s to breaks list' % self.breaks)
