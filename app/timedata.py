@@ -40,12 +40,16 @@ class TimeData:
                 self.available.append(convert(date, time))
             except TypeError:
                 pass
+            except AttributeError:
+                pass
         print('adding %s to available list' % self.available)
         self.breaks = []
         for time in [s.end1, s.end2, s.end3, s.end4, s.end5, s.end6, s.end7, s.end8]:
             try:
                 self.breaks.append(convert(date, time))
             except TypeError:
+                pass
+            except AttributeError:
                 pass
         print('adding %s to breaks list' % self.breaks)
         self.sched = []
