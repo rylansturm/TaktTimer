@@ -750,7 +750,8 @@ def read_time_file(shift=None, name=None):
                        'endUP%s' % block: [shift_adjust, 1, 2],
                        'endDN%s' % block: [shift_adjust, 1, 0],
                        }
-            d = {'block%s' % block:         ['%s\n%s' % (start.strftime('%I:%M %p'), end.strftime('%I:%M %p')), 0, 1, 2],
+            d = {'block%s' % block:         ['%s\n%s' % (start.strftime('%I:%M %p'),
+                                                         end.strftime('%I:%M %p')), 0, 1, 2],
                  'block%sTotal' % block:    ['%s\nSecs' % block_time, 0, 3, 2],
                  # 'block%sPercent' % block:  [('%.2f' % percent)[2:] + '% of available time', 2, 0]
                  }
