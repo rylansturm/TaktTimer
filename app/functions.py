@@ -172,12 +172,7 @@ def counting_server():
         print('no kpi, getting one now')
         session = create_session()
         try:  # try to get the existing kpi, don't make one unless there isn't one already
-            if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7, 0):
-                date = datetime.date.today() - datetime.timedelta(days=1)
-            else:
-                date = datetime.date.today()
-            Var.kpi = session.query(KPI).filter(KPI.d == date,
-                                                KPI.shift == shift_guesser()).one()
+            Var.kpi = session.query(KPI).filter(KPI.d == kpi_date(), KPI.shift == shift_guesser()).one()
             Var.kpi_id = Var.kpi.id
             Var.demand = Var.kpi.demand
             recalculate()
@@ -308,7 +303,7 @@ def data_log():
         new_cycle.kpi_id = Var.kpi_id
     else:
         try:
-            new_cycle.kpi_id = session.query(KPI).filter(KPI.d == datetime.date.today(),
+            new_cycle.kpi_id = session.query(KPI).filter(KPI.d == kpi_date(),
                                                          KPI.shift == shift_guesser()).one().id
         except NoResultFound:
             pass
@@ -339,32 +334,34 @@ def get_tct():
     """ Don't go higher than original Takt Time, don't go lower than GUIVar.minimum_tct """
     behind, ahead = Var.tct < GUIVar.minimum_tct, Var.tct > int(Var.takt)
     Var.tct = GUIVar.minimum_tct if behind else int(Var.takt) if ahead else Var.tct
-    return Var.tct if not Var.tct_from_kpi else int(Var.tct_from_kpi)
+    pct: bool = bool(Var.using_tct) and bool(Var.tct_from_kpi)
+    return Var.tct if not pct else int(Var.tct_from_kpi)
 
 
 def set_tct(btn):
-    if btn == 'tct_up':
-        app.setEntry('plan_cycle', int(app.getEntry('plan_cycle')) + 1)
-    if btn == 'tct_down':
-        app.setEntry('plan_cycle', int(app.getEntry('plan_cycle')) - 1)
+    direction: str = btn[4:6]
+    amount: int = int(btn[-1])
+    if direction == 'up':
+        app.setLabel('plan_cycle', int(app.getLabel('plan_cycle')) + amount)
+    if direction == 'dn':
+        app.setLabel('plan_cycle', int(app.getLabel('plan_cycle')) - amount)
 
 
 def log_tct(btn):
-    tct = app.getEntry('plan_cycle')
+    tct = app.getLabel('plan_cycle')
     tct = tct if tct else None
     if btn == 'remove_tct':
         tct = None
     Var.tct_from_kpi = tct
     session = create_session()
-    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(), KPI.shift == shift_guesser()).first()
+    kpi = session.query(KPI).filter(KPI.d == kpi_date(), KPI.shift == shift_guesser()).first()
     kpi.plan_cycle_time = tct
     session.add(kpi)
     session.commit()
 
 
 def use_tct():
-    """ changes whether or not we are using the fluctuating TCT  ## Currently only locally set ## """
-    # TODO: make this a db column on KPI table so the TL can set it globally
+    """ changes whether or not we are using the TL-set Plan Cycle Time (or the fluctuating tct) """
     Var.using_tct = not Var.using_tct
     if Var.using_tct:
         app.setLabelBg('TCTLabel', GUIConfig.appBgColor)
@@ -461,21 +458,6 @@ def get_block_var():
         '1' during first block, '2' during first break, '3' during block 2, etc. """
     time_list = Var.sched.sched
     passed = 0
-    # if shift_guesser() == 'Grave':  # Grave crosses a date change, so is handled differently
-    #     if Var.now > time_list[-1]:
-    #         if Var.now < time_list[0]:
-    #             if not Var.new_shift:
-    #                 reset()
-    #             else:
-    #                 passed = 0
-    #         else:
-    #             return 1
-    #     else:
-    #         passed = 1
-    #         for time in time_list[1:]:
-    #             if Var.now > time:
-    #                 passed += 1
-    # else:  # for Day and Swing
     """ iterate through each time in the schedule, and increment the 'passed' variable if the time has passed """
     for time in time_list:
         if Var.now > time:
@@ -550,13 +532,20 @@ def press(btn):
         print('Bye, part! Have fun on your first day at bearings!')
 
 
+def kpi_date():
+    date = datetime.date.today()
+    if datetime.datetime.now().hour < 7:
+        date -= datetime.timedelta(1)
+    return date
+
+
 def recalculate():
     """ resets labels for available time, takt, tct, seq time, and partsOutMeter """
     Var.available_time = sum(Var.sched.blockSeconds)
     # Var.demand = int(app.getEntry('demand'))
     Var.takt = Var.available_time / Var.demand
     session = create_session()
-    kpi = session.query(KPI).filter(KPI.d == datetime.date.today(), KPI.shift == shift_guesser()).first()
+    kpi = session.query(KPI).filter(KPI.d == kpi_date(), KPI.shift == shift_guesser()).first()
     if kpi:
         Var.tct_from_kpi = kpi.plan_cycle_time
     Var.tct = get_tct()
@@ -654,10 +643,7 @@ def shift_adjust(btn):
                                                           " + (increment if direction == 'UP' else -increment))")
     new_schedule.get_available_time()
     session.add(new_schedule)
-    date = datetime.date.today()
-    if datetime.datetime.time(datetime.datetime.now()) < datetime.time(7):
-        date -= datetime.timedelta(1)
-    kpi = session.query(KPI).filter(KPI.d == date, KPI.shift == shift_guesser()).one()
+    kpi = session.query(KPI).filter(KPI.d == kpi_date(), KPI.shift == shift_guesser()).one()
     kpi.schedule = new_schedule
     Var.kpi = kpi
     session.add(kpi)
@@ -696,12 +682,7 @@ def determine_time_file():
     Var.schedule_edited = False
     session = create_session()
     try:
-        if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7, 0):
-            date = datetime.date.today() - datetime.timedelta(days=1)
-        else:
-            date = datetime.date.today()
-        kpi = session.query(KPI).filter(KPI.d == date,
-                                        KPI.shift == shift).one()
+        kpi = session.query(KPI).filter(KPI.d == kpi_date(), KPI.shift == shift).one()
     except NoResultFound:
         kpi = KPI(d=datetime.date.today(), shift=shift, demand=312)
     kpi.schedule = session.query(Schedule).filter(Schedule.name == sched, Schedule.shift == shift).one()

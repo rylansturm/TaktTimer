@@ -51,6 +51,22 @@ with app.tabbedFrame('Tabs'):
                     app.addButton('%02dDNDemand' % int(inc[i]), demand_set, row=1, column=i + 1)
                     app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
+        with app.labelFrame('Plan Cycle Time', row=0, column=1, rowspan=3):
+            app.setSticky('n')
+            app.addLabel('plan_cycle_label', 'PCT')
+            app.addButtons(['tct_up1', 'tct_up5'], set_tct)
+            app.setButton('tct_up1', "+1")
+            app.setButton('tct_up5', "+5")
+            app.addLabel('plan_cycle', 60)
+            app.addButtons(['tct_dn1', 'tct_dn5'], set_tct)
+            app.setButton('tct_dn1', "-1")
+            app.setButton('tct_dn5', "-5")
+            app.addButton('log_tct', log_tct)
+            app.setButton('log_tct', 'Set PCT on all timers')
+            app.addButton('remove_tct', log_tct)
+            app.setButton('remove_tct', 'Remove PCT from all timers')
+    with app.tab('Schedule'):
+        app.setBg(GUIConfig.appBgColor)
         with app.frame('Parameters', row=0, column=1, rowspan=3):
             app.setSticky('new')
             app.setBg(GUIConfig.appBgColor)
@@ -65,15 +81,6 @@ with app.tabbedFrame('Tabs'):
                     app.addLabel('block%s' % block, 'time-time', 0, 0)
                     app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
                     # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
-    with app.tab('Test'):
-        app.setBg(GUIConfig.appBgColor)
-        app.addLabel('plan_cycle_label', 'TCT')
-        app.addButton('tct_up', set_tct)
-        app.addNumericEntry('plan_cycle')
-        app.setEntry('plan_cycle', 60)
-        app.addButton('tct_down', set_tct)
-        app.addButton('log_tct', log_tct)
-        app.addButton('remove_tct', log_tct)
 print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.time_open).total_seconds())
 read_time_file(shift=Var.shift, name=Var.sched.name)
 
