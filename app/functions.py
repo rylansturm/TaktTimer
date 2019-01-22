@@ -757,12 +757,12 @@ def read_time_file(shift=None, name=None):
                  }
             for label in d:
                 app.addLabel(title=label, text=d[label][0], row=d[label][1], column=d[label][2], rowspan=d[label][3])
-            if c['Install']['type'] != 'Worker':
-                for button in buttons:
-                    e = len(button)
-                    app.addButton(title=button, func=buttons[button][0],
-                                  row=buttons[button][1], column=buttons[button][2])
-                    app.setButton(button, '+' if button[e-3:e-1] == 'UP' else '-')
+            # if c['Install']['type'] != 'Worker':
+            for button in buttons:
+                e = len(button)
+                app.addButton(title=button, func=buttons[button][0],
+                              row=buttons[button][1], column=buttons[button][2])
+                app.setButton(button, '+' if button[e-3:e-1] == 'UP' else '-')
     app.stopFrame()
     Var.mark = datetime.datetime.now()
     print('finished with app.function.read_time_file')

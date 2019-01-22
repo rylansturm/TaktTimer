@@ -26,7 +26,7 @@ while True:
         c.read('install.ini')
         print('importing app at %s' % datetime.datetime.now())
         from app import app
-        if c['Install']['type'] == 'Worker':
+        if c['Install']['type'] == 'Worker' or 'Server':
             print('importing layout at %s' % datetime.datetime.now())
             from app import layout_worker
             print('importing GUIVar at %s' % datetime.datetime.now())
