@@ -12,24 +12,16 @@ class Var:
     poll_count = 0
     cycles = None
     sequences = []
-    labels_swing = {1: 'Assembly',
-                    2: 'Presses',
-                    3: 'Blaster',
-                    4: 'Lapper',
-                    5: 'Pre-Size',
-                    6: 'Bonder',
-                    7: 'Pre-Finish',
-                    8: 'Chamfer',
-                    }
-    labels_day = {1: 'Assembly',
-                  2: 'Presses',
-                  3: 'Blaster',
-                  4: 'Lapper',
-                  5: 'Pre-Size',
-                  6: 'Bonder',
-                  7: 'Pre-Finish',
-                  8: 'Chamfer',
-                  }
+    labels = {1: 'Sequence 1',
+              2: 'Sequence 2',
+              3: 'Sequence 3',
+              4: 'Sequence 4',
+              5: 'Sequence 5',
+              6: 'Sequence 6',
+              7: 'Sequence 7',
+              8: 'Sequence 8',
+              9: 'Sequence 9',
+              }
     kpi = None
     schedule = None
     takt = 0
@@ -104,7 +96,7 @@ def update():
         except ZeroDivisionError:
             expected = 1
         for seq in Var.sequences:
-            label = Var.labels_swing[seq] if shift_guesser() == 'Swing' else Var.labels_day[seq]
+            label = Var.labels[seq]
             seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
             delivered = seq_cycles.first().delivered
             ahead = delivered - expected
