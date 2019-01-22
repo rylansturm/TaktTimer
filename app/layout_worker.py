@@ -142,7 +142,7 @@ with app.tabbedFrame('Tabs'):
             app.setBg(GUIConfig.appBgColor)
             # app.addLabel('timestamp',
             #              datetime.datetime.now().strftime("%a, %b %d, '%y\n    %I:%M:%S %p"))
-            # app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
+            app.addOptionBox('Area: ', ['Select'] + GUIVar.areas)
             # app.setOptionBoxChangeFunction('Area: ', enable_sched_select)
             app.addOptionBox('Shift: ', GUIVar.shifts)
             app.addOptionBox('Schedule: ', GUIVar.scheduleTypes)
