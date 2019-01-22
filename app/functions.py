@@ -334,13 +334,13 @@ def get_tct():
     """ Don't go higher than original Takt Time, don't go lower than GUIVar.minimum_tct """
     behind, ahead = Var.tct < GUIVar.minimum_tct, Var.tct > int(Var.takt)
     Var.tct = GUIVar.minimum_tct if behind else int(Var.takt) if ahead else Var.tct
-    pct: bool = bool(Var.using_tct) and bool(Var.tct_from_kpi)
+    pct = bool(Var.using_tct) and bool(Var.tct_from_kpi)
     return Var.tct if not pct else int(Var.tct_from_kpi)
 
 
 def set_tct(btn):
-    direction: str = btn[4:6]
-    amount: int = int(btn[-1])
+    direction = btn[4:6]
+    amount = int(btn[-1])
     if direction == 'up':
         app.setLabel('plan_cycle', int(app.getLabel('plan_cycle')) + amount)
     if direction == 'dn':
