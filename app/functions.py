@@ -114,7 +114,7 @@ def counting_worker():
     Var.db_poll_count += 1  # auto-increment and check every db_poll_target-th time. No need to check too frequently
     if Var.db_poll_count == Var.db_poll_target:  # every db_poll_target-th time
         session = create_session()
-        try:  # there should one (only one) kpi that matches. If not, go to the exception.
+        try:  # there should be one (only one) kpi that matches. If not, go to the exception.
             if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7):
                 date = datetime.date.today() - datetime.timedelta(days=1)
             else:
@@ -295,6 +295,7 @@ def cycle():
 
 
 def data_log():
+
     """ where data goes to die I mean be analyzed """
     session = create_session()
     new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle,

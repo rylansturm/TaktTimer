@@ -8,7 +8,7 @@ import datetime
 
 
 class Var:
-    length = 1
+    length = -1
     poll_count = 0
     cycles = None
     sequences = []
@@ -147,9 +147,12 @@ def get_tct(parts_out):
 def get_block_var():
     now = datetime.datetime.time(datetime.datetime.now())
     sched = []
-    for time in Var.schedule.return_times():
-        if time:
-            sched.append(time)
+    try:
+        for time in Var.schedule.return_times():
+            if time:
+                sched.append(time)
+    except AttributeError:
+        pass
     var = 0
     if shift_guesser() == 'Grave':
         if now > sched[0]:
