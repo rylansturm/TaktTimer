@@ -14,7 +14,7 @@ with app.tabbedFrame('Tabs'):
     app.setBg(GUIConfig.appBgColor)
 
     # Setup tab #
-    with app.tab('Time'):
+    with app.tab('Setup'):
         app.setBg(GUIConfig.appBgColor)
         with app.frame('Presets', row=0, column=0):
             app.setSticky('new')
@@ -51,9 +51,9 @@ with app.tabbedFrame('Tabs'):
                     app.addButton('%02dDNDemand' % int(inc[i]), demand_set, row=1, column=i + 1)
                     app.setButton('%02dUPDemand' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNDemand' % int(inc[i]), '-%s' % inc[i])
-        with app.labelFrame('Plan Cycle Time', row=0, column=1, rowspan=3):
+        with app.labelFrame('Plan Cycle Time', row=0, column=1, rowspan=3, hideTitle=True):
             app.setSticky('n')
-            app.addLabel('plan_cycle_label', 'PCT')
+            app.addLabel('plan_cycle_label', 'Plan Cycle Time')
             app.addButtons(['tct_up1', 'tct_up5'], set_tct)
             app.setButton('tct_up1', "+1")
             app.setButton('tct_up5', "+5")

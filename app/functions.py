@@ -382,6 +382,7 @@ def label_update():
     app.setLabel('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
+    app.setLabel('onTime', Var.on_time)
     app.setLabel('battingAVG', '%.3f' % Var.batting_avg)
     app.setLabel('lastCycle', Var.last_cycle)
     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
@@ -469,7 +470,7 @@ def get_block_var():
         passed -= 1
 
     """ at the end of the shift, run the reset function """
-    if passed == len(time_list):
+    if passed == 0:
         if not Var.new_shift:
             reset()
     return passed
@@ -536,9 +537,10 @@ def press(btn):
 
 
 def kpi_date():
-    date = datetime.date.today()
-    if datetime.datetime.now().hour < 7:
-        date -= datetime.timedelta(1)
+    """ returns the date used by the kpi table, which is the date the shift starts for Grave """
+    date = datetime.date.today()  # Current date
+    if datetime.datetime.now().hour < 7:  # if it's after midnight on Grave
+        date -= datetime.timedelta(1)  # use the start date
     return date
 
 
@@ -612,12 +614,15 @@ Var.shift = shift_guesser()  # set the current shift upon startup
 
 def countdown_format(seconds: int):
     """ takes seconds and returns ":SS", "MM:SS", or "HH:MM:SS" """
+    sign = -1 if seconds < 0 else 1
+    seconds = seconds * sign
+    sign_label = '-' if sign < 0 else ''
     hours, minutes = divmod(seconds, 3600)
     minutes, seconds = divmod(minutes, 60)
-    hour_label = '%s:%02d' % (hours, minutes)
+    hour_label = '%sh:%02d' % (hours, minutes)
     minute_label = '%s:%02d' % (minutes, seconds)
-    second_label = ':%02d' % seconds
-    return Var.tCycle if hours < 0 else hour_label if hours else minute_label if minutes else second_label
+    second_label = sign_label + ':%02d' % seconds
+    return seconds if hours < 0 else hour_label if hours else minute_label if minutes else second_label
 
 
 def shift_adjust(btn):
