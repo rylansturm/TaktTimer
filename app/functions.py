@@ -295,7 +295,6 @@ def cycle():
 
 
 def data_log():
-
     """ where data goes to die I mean be analyzed """
     session = create_session()
     new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle,
@@ -396,12 +395,15 @@ def label_update():
     app.setLabel('TMAndon', Var.andonCountMsg)
 
     """ set the label for 'Next Break' or 'Starting at' depending on where we are """
-    if get_block_var() in range(len(Var.sched.sched)):
-        app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
-        if Var.block == 0:
-            app.setLabel('nextBreakLabel', 'Starting at: ')
-        else:
-            app.setLabel('nextBreakLabel', 'Next Break: ')
+    try:
+        if get_block_var() in range(len(Var.sched.sched)):
+            app.setLabel('nextBreak', Var.sched.sched[get_block_var()].strftime('%I:%M %p'))
+            if Var.block == 0:
+                app.setLabel('nextBreakLabel', 'Starting at: ')
+            else:
+                app.setLabel('nextBreakLabel', 'Next Break: ')
+    except IndexError:
+        pass
 
     """ set the partsAhead label color and text ('ahead' or 'behind') """
     if Var.ahead and parts_ahead() < 0:
