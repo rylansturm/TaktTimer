@@ -147,9 +147,11 @@ def counting():
     try:
         expected = int(time_elapsed() // Var.takt)
     except ZeroDivisionError:
-        expected = 1
+        expected = 0
     except AttributeError:
-        expected = 1
+        expected = 0
+    except IndexError:
+        expected = 0
     try:
         for seq in Var.sequences:
             meter = 'seq%sMeter' % seq
@@ -168,6 +170,7 @@ def counting():
             ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
             try:
                 meter_val = (delivered / Var.kpi.demand) * 100
+                meter_val = 100.0 if meter_val > 100 else meter_val
             except ZeroDivisionError:
                 meter_val = 0.0
             meter_label = ('%s:     %s  (%s)' % (label, delivered, ahead))
