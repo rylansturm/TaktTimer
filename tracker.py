@@ -227,18 +227,21 @@ def get_block_var():
     except AttributeError:
         pass
     var = 0
-    if shift_guesser() == 'Grave':
-        if now > sched[0]:
-            var = 1
+    try:
+        if shift_guesser() == 'Grave':
+            if now > sched[0]:
+                var = 1
+            else:
+                var = 1
+                for time in sched[1:]:
+                    if now > time:
+                        var += 1
         else:
-            var = 1
-            for time in sched[1:]:
+            for time in sched:
                 if now > time:
                     var += 1
-    else:
-        for time in sched:
-            if now > time:
-                var += 1
+    except IndexError:
+        var = 0
     Var.breaktime = True if var % 2 == 0 else False
     return var
 
@@ -256,26 +259,29 @@ def reset():
 
 
 def time_elapsed():
-    now = datetime.datetime.now()
-    block = get_block_var()
-    sched = []
-    for time in Var.schedule.return_times():
-        if time:
-            sched.append(time)
-    if block >= len(sched):
-        reset()
+    try:
+        now = datetime.datetime.now()
+        block = get_block_var()
+        sched = []
+        for time in Var.schedule.return_times():
+            if time:
+                sched.append(time)
+        if block >= len(sched):
+            reset()
+            return 0
+        elapsed = (now - datetime.datetime.combine(datetime.date.today(), sched[0])).total_seconds()
+        for i in range(len(sched) // 2 - 1):
+            if sched[2*i+2]:
+                seconds_in_break = (datetime.datetime.combine(datetime.date.today(), sched[2 * i + 2])
+                                    - datetime.datetime.combine(datetime.date.today(), sched[2 * i + 1])).total_seconds()
+                if block/2 > i+1:
+                    elapsed -= seconds_in_break
+        if block % 2 == 0:
+            elapsed -= (now - datetime.datetime.combine(datetime.date.today(), sched[block - 1])).total_seconds()
+        elapsed += (86400 if elapsed < 0 else 0)
+        return elapsed
+    except AttributeError:
         return 0
-    elapsed = (now - datetime.datetime.combine(datetime.date.today(), sched[0])).total_seconds()
-    for i in range(len(sched) // 2 - 1):
-        if sched[2*i+2]:
-            seconds_in_break = (datetime.datetime.combine(datetime.date.today(), sched[2 * i + 2])
-                                - datetime.datetime.combine(datetime.date.today(), sched[2 * i + 1])).total_seconds()
-            if block/2 > i+1:
-                elapsed -= seconds_in_break
-    if block % 2 == 0:
-        elapsed -= (now - datetime.datetime.combine(datetime.date.today(), sched[block - 1])).total_seconds()
-    elapsed += (86400 if elapsed < 0 else 0)
-    return elapsed
 
 
 def kpi_date():
