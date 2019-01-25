@@ -115,18 +115,15 @@ def counting_worker():
     if Var.db_poll_count == Var.db_poll_target:  # every db_poll_target-th time
         session = create_session()
         try:  # there should be one (only one) kpi that matches. If not, go to the exception.
-            if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7):
-                date = datetime.date.today() - datetime.timedelta(days=1)
-            else:
-                date = datetime.date.today()
             kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
-                                            KPI.d == date).one()  # the kpi for today, this shift
+                                            KPI.d == kpi_date()).one()  # the kpi for today, this shift
             seq = session.query(Cycles.seq).filter(Cycles.kpi == kpi).all()  # all the active sequences on this kpi
             """ if the info we have does not match what's on the kpi, update the kpi """
             if Var.shift != kpi.shift or \
-                    Var.sched.name != kpi.schedule.name or\
-                    Var.demand != kpi.demand or\
-                    Var.kpi_id != kpi.id or\
+                    Var.sched.name != kpi.schedule.name or \
+                    Var.demand != kpi.demand or \
+                    Var.kpi_id != kpi.id or \
+                    Var.tct_from_kpi != kpi.plan_cycle_time or \
                     Var.available_time != kpi.schedule.available_time:
                 print('shifts:')
                 print(Var.shift)
@@ -148,6 +145,7 @@ def counting_worker():
                 read_time_file(shift=Var.shift, name=kpi.schedule.name)  # creates timedata.TimeData object as Var.sched
                 Var.demand = kpi.demand
                 Var.kpi_id = kpi.id
+                Var.tct_from_kpi = kpi.plan_cycle_time
                 Var.available_time = Var.sched.available_time
                 recalculate()  # resets takt, tct, seq_time, and related labels
                 app.setLabel('Schedule: ', Var.sched.name + ' Schedule')

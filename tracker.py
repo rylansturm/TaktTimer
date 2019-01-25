@@ -8,7 +8,7 @@ import datetime
 
 
 class Var:
-    length = -1
+    length = 0
     poll_count = 0
     cycles = None
     sequences = []
@@ -27,6 +27,7 @@ class Var:
     takt = 0
     demand = 0
     tct = {}
+    tct_from_kpi = None
     breaktime = False
     overall_stability = 0.0
 
@@ -41,18 +42,20 @@ app.setFont(size=20)
 app.setBg(GUIConfig.appBgColor)
 session = create_session()
 
+app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
+app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
+app.addLabel('onOffTrackLabel', 'Current Expectation: 0\n Demand: 0', colspan=2)
+app.getLabelWidget('time').config(font='arial 48')
+
 
 def update():
     try:
-        if shift_guesser() == 'Grave' and datetime.datetime.time(datetime.datetime.now()) < datetime.time(12, 0):
-            date = datetime.date.today() - datetime.timedelta(days=1)
-        else:
-            date = datetime.date.today()
         kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
-                                        KPI.d == date).one()
+                                        KPI.d == kpi_date()).one()
         if Var.kpi != kpi:
             Var.kpi = kpi
             Var.schedule = kpi.schedule
+            Var.tct_from_kpi = kpi.plan_cycle_time
             try:
                 Var.takt = Var.kpi.schedule.available_time / Var.kpi.demand
             except ZeroDivisionError:
@@ -95,26 +98,29 @@ def update():
             expected = int(time_elapsed() // Var.takt)
         except ZeroDivisionError:
             expected = 1
-        for seq in Var.sequences:
-            label = Var.labels[seq]
-            seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
-            delivered = seq_cycles.first().delivered
-            ahead = delivered - expected
-            ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
-            try:
-                avg = 'On Time Delivery %i%%' % \
-                      (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
-            except ZeroDivisionError:
-                avg = 'On Time Delivery 0%%'
-            try:
-                app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
-                             '%s:     %s  (%s)' %
-                             (label, delivered, ahead))
-            except ZeroDivisionError:
-                app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
-            app.setLabel('seq%sAVG' % seq, avg)
-            Var.tct[seq] = get_tct(seq_cycles.first().delivered)
-            Var.tct[seq] = get_tct(seq_cycles.first().delivered)
+        try:
+            for seq in Var.sequences:
+                label = Var.labels[seq]
+                seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
+                delivered = seq_cycles.first().delivered
+                ahead = delivered - expected
+                ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
+                try:
+                    avg = 'On Time Delivery %i%%' % \
+                          (len(seq_cycles.filter(Cycles.hit == 1).all()) / len(seq_cycles.all()) * 100)
+                except ZeroDivisionError:
+                    avg = 'On Time Delivery 0%%'
+                # try:
+                #     app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
+                #                  '%s:     %s  (%s)' %
+                #                  (label, delivered, ahead))
+                # except ZeroDivisionError:
+                #     app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
+                app.setLabel('seq%sAVG' % seq, avg)
+                Var.tct[seq] = get_tct(seq_cycles.first().delivered)
+                Var.tct[seq] = get_tct(seq_cycles.first().delivered)
+        except AttributeError:
+            pass
         try:
             app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
             app.setLabel('onOffTrackLabel',
@@ -126,7 +132,50 @@ def update():
     session.close()
 
 
+def counting():
+    now = datetime.datetime.now()
+    try:
+        app.setLabel('time', now.strftime('%I:%M:%S %p'))
+    except ItemLookupError:
+        pass
+    Var.poll_count += 1
+    if Var.poll_count == 15:
+        Var.poll_count = 0
+        update()
+    try:
+        expected = int(time_elapsed() // Var.takt)
+    except ZeroDivisionError:
+        expected = 1
+    except AttributeError:
+        expected = 1
+    try:
+        for seq in Var.sequences:
+            cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
+            tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
+            if get_block_var() % 2 != 0:
+                app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % tCycle)
+                if tCycle < 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.andonColor:
+                    app.setLabelBg('seq%sCurrent' % seq, GUIConfig.andonColor)
+                if tCycle > 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.appBgColor:
+                    app.setLabelBg('seq%sCurrent' % seq, GUIConfig.appBgColor)
+            label = Var.labels[seq]
+            seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
+            delivered = seq_cycles.first().delivered
+            ahead = delivered - expected
+            ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
+            try:
+                app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
+                             '%s:     %s  (%s)' %
+                             (label, delivered, ahead))
+            except ZeroDivisionError:
+                app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
+    except AttributeError:
+        pass
+
+
 def get_tct(parts_out):
+    if Var.tct_from_kpi:
+        return Var.tct_from_kpi
     try:
         remaining_demand = Var.demand - parts_out
         remaining_time = Var.schedule.available_time - time_elapsed()
@@ -205,25 +254,12 @@ def time_elapsed():
     return elapsed
 
 
-def counting():
-    now = datetime.datetime.now()
-    try:
-        app.setLabel('time', now.strftime('%I:%M:%S %p'))
-    except ItemLookupError:
-        pass
-    Var.poll_count += 1
-    if Var.poll_count == 15:
-        Var.poll_count = 0
-        update()
-    for seq in Var.sequences:
-        cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
-        tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
-        if get_block_var() % 2 != 0:
-            app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % tCycle)
-            if tCycle < 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.andonColor:
-                app.setLabelBg('seq%sCurrent' % seq, GUIConfig.andonColor)
-            if tCycle > 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.appBgColor:
-                app.setLabelBg('seq%sCurrent' % seq, GUIConfig.appBgColor)
+def kpi_date():
+    """ returns the date used by the kpi table, which is the date the shift starts for Grave """
+    date = datetime.date.today()  # Current date
+    if datetime.datetime.now().hour < 7:  # if it's after midnight on Grave
+        date -= datetime.timedelta(1)  # use the start date
+    return date
 
 
 app.registerEvent(counting)
