@@ -9,7 +9,7 @@ import datetime
 
 class Var:
     length = 0
-    poll_count = 0
+    poll_count = 55
     cycles = None
     sequences = []
     labels = {1: 'Sequence 1',
@@ -50,6 +50,7 @@ app.getLabelWidget('time').config(font='arial 48')
 
 
 def update():
+    print('update')
     try:
         kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                         KPI.d == kpi_date()).one()
@@ -140,7 +141,7 @@ def counting():
     except ItemLookupError:
         pass
     Var.poll_count += 1
-    if Var.poll_count == 15:
+    if Var.poll_count == 60:
         Var.poll_count = 0
         update()
     try:
@@ -165,22 +166,16 @@ def counting():
             delivered = seq_cycles.first().delivered
             ahead = delivered - expected
             ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
-            meter_val = (delivered / Var.kpi.demand) * 100
+            try:
+                meter_val = (delivered / Var.kpi.demand) * 100
+            except ZeroDivisionError:
+                meter_val = 0.0
             meter_label = ('%s:     %s  (%s)' % (label, delivered, ahead))
             Var.seq_meter_values[meter] = (meter_val/100, meter_label)
-            try:
-                if app.getMeter(meter) != Var.seq_meter_values[meter]:
-                    print(Var.seq_meter_values)
-                    print(app.getMeter(meter))
-                    try:
-                        app.setMeter(meter, meter_val, meter_label)
-                    except ZeroDivisionError:
-                        app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
-            except KeyError:
-                app.setMeter('seq%sMeter' % seq, (delivered / Var.kpi.demand) * 100,
-                             '%s:     %s  (%s)' %
-                             (label, delivered, ahead))
-                print(KeyError)
+            if app.getMeter(meter) != Var.seq_meter_values[meter]:
+                print(Var.seq_meter_values)
+                print(app.getMeter(meter))
+                app.setMeter(meter, meter_val, meter_label)
     except AttributeError:
         pass
 
