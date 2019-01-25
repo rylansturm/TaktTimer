@@ -9,7 +9,7 @@ import datetime
 
 class Var:
     length = 0
-    poll_count = 55
+    poll_count = 10
     cycles = None
     sequences = []
     labels = {1: 'Sequence 1',
@@ -141,7 +141,7 @@ def counting():
     except ItemLookupError:
         pass
     Var.poll_count += 1
-    if Var.poll_count == 60:
+    if Var.poll_count == 15:
         Var.poll_count = 0
         update()
     try:
