@@ -30,6 +30,7 @@ class Var:
     tct_from_kpi = None
     breaktime = False
     overall_stability = 0.0
+    seq_meter_values = {}
 
 
 def shift_guesser():
@@ -150,10 +151,11 @@ def counting():
         expected = 1
     try:
         for seq in Var.sequences:
+            meter = 'seq%sMeter' % seq
             cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
             tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
             if get_block_var() % 2 != 0:
-                app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % tCycle)
+                app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))
                 if tCycle < 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.andonColor:
                     app.setLabelBg('seq%sCurrent' % seq, GUIConfig.andonColor)
                 if tCycle > 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.appBgColor:
@@ -163,14 +165,37 @@ def counting():
             delivered = seq_cycles.first().delivered
             ahead = delivered - expected
             ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
+            meter_val = (delivered / Var.kpi.demand) * 100
+            meter_label = ('%s:     %s  (%s)' % (label, delivered, ahead))
+            Var.seq_meter_values[meter] = (meter_val/100, meter_label)
             try:
-                app.setMeter('seq%sMeter' % seq, (seq_cycles.first().delivered / Var.kpi.demand) * 100,
+                if app.getMeter(meter) != Var.seq_meter_values[meter]:
+                    print(Var.seq_meter_values)
+                    print(app.getMeter(meter))
+                    try:
+                        app.setMeter(meter, meter_val, meter_label)
+                    except ZeroDivisionError:
+                        app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
+            except KeyError:
+                app.setMeter('seq%sMeter' % seq, (delivered / Var.kpi.demand) * 100,
                              '%s:     %s  (%s)' %
                              (label, delivered, ahead))
-            except ZeroDivisionError:
-                app.setMeter('seq%sMeter' % seq, 0.0, 'Sequence:     0   (0)')
+                print(KeyError)
     except AttributeError:
         pass
+
+
+def countdown_format(seconds: int):
+    """ takes seconds and returns ":SS", "MM:SS", or "HH:MM:SS" """
+    sign = -1 if seconds < 0 else 1
+    seconds = seconds * sign
+    sign_label = '-' if sign < 0 else ''
+    hours, minutes = divmod(seconds, 3600)
+    minutes, seconds = divmod(minutes, 60)
+    hour_label = '%sh:%02d' % (hours, minutes)
+    minute_label = '%s:%02d' % (minutes, seconds)
+    second_label = sign_label + ':%02d' % seconds
+    return seconds if hours < 0 else hour_label if hours else minute_label if minutes else second_label
 
 
 def get_tct(parts_out):
