@@ -180,6 +180,7 @@ def counting():
                 print(app.getMeter(meter))
                 app.setMeter(meter, meter_val, meter_label)
     except AttributeError:
+        print(AttributeError)
         pass
 
 
