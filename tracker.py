@@ -14,12 +14,12 @@ class Var:
     sequences = []
     labels = {1: 'Sequence 1',
               2: 'Sequence 2',
-              3: 'Sequence 2',
-              4: 'Sequence 2',
-              5: 'Sequence 2',
-              6: 'Sequence 2',
-              7: 'Sequence 2',
-              8: 'Sequence 2',
+              3: 'Sequence 3',
+              4: 'Sequence 4',
+              5: 'Sequence 6',
+              6: 'Sequence 7',
+              7: 'Sequence 8',
+              8: 'Sequence 9',
               }
     kpi = None
     schedule = None
