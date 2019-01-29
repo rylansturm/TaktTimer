@@ -253,7 +253,7 @@ def reset():
     Var.sequences = []
     Var.kpi = None
     Var.schedule = None
-    Var.takt = 0
+    Var.takt = 1
     Var.demand = 0
     Var.tct = {}
 
