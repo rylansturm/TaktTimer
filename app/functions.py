@@ -47,7 +47,8 @@ class Var:
     kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
                                     KPI.shift == 'Day').first()     # db entry for current shift (demand, schedule)
     kpi_id = None                               # id for simpler db queries
-    ahead = True                                # whether or not we are currently ahead of pace
+    ahead_takt = True                           # whether or not we are currently ahead of takt pace
+    ahead_tct = True                            # whether or not we are currently ahead of tct pace
     schedule_edited = False                     # whether TL has adjusted schedule (shows 'Custom' for schedule)
     schedule_option_list = []                   # replaces GUIVar.scheduleTypes with list of schedules from db
     breaktime = True                            # whether it is currently break (fixes countdown issues after break)
@@ -286,7 +287,7 @@ def cycle():
         Var.batting_avg = Var.on_time / sum([Var.on_time, Var.late, Var.early])
         Var.mark = datetime.datetime.now()
         yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
-        app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
+        # app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
         app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
                      '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
         app.thread(data_log())  # save it! but don't make me wait on you.
@@ -375,8 +376,10 @@ def label_update():
     app.setLabel('time', Var.now.strftime('%I:%M:%S %p'))
     app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
-    disparity = parts_ahead() if parts_ahead() >= 0 else -(parts_ahead())
-    app.setLabel('partsAhead', disparity)
+    disparity_takt = parts_ahead_takt() if parts_ahead_takt() >= 0 else -(parts_ahead_takt())
+    disparity_tct = parts_ahead_tct() if parts_ahead_tct() >= 0 else -(parts_ahead_tct())
+    app.setLabel('partsAhead', disparity_takt)
+    app.setLabel('tctAhead', disparity_tct)
     app.setLabel('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
@@ -405,14 +408,24 @@ def label_update():
         pass
 
     """ set the partsAhead label color and text ('ahead' or 'behind') """
-    if Var.ahead and parts_ahead() < 0:
-        Var.ahead = False
-        app.setLabel('partsAheadLabel', 'Parts\nBehind')
+    if Var.ahead_takt and parts_ahead_takt() < 0:
+        Var.ahead_takt = False
+        app.setLabel('partsAheadLabel', '  Takt\n Parts\nBehind')
         app.setLabelBg('partsAhead', 'red')
-    if not Var.ahead and parts_ahead() >= 0:
-        Var.ahead = True
-        app.setLabel('partsAheadLabel', 'Parts\nAhead')
+    if not Var.ahead_takt and parts_ahead_takt() >= 0:
+        Var.ahead_takt = True
+        app.setLabel('partsAheadLabel', ' Takt\n Parts\nAhead')
         app.setLabelBg('partsAhead', GUIConfig.appBgColor)
+
+    """ set the tctAhead label color and text ('ahead' or 'behind') """
+    if Var.ahead_tct and parts_ahead_tct() < 0:
+        Var.ahead_tct = False
+        app.setLabel('tctAheadLabel', '  PCT\n Parts\nBehind')
+        app.setLabelBg('tctAhead', 'red')
+    if not Var.ahead_tct and parts_ahead_tct() >= 0:
+        Var.ahead_tct = True
+        app.setLabel('tctAheadLabel', ' PCT\n Parts\nAhead')
+        app.setLabelBg('tctAhead', GUIConfig.appBgColor)
 
 
 def demand_set(btn):
@@ -507,10 +520,17 @@ def time_elapsed():
     return elapsed
 
 
-def parts_ahead():
-    """ returns the difference between where we should be and where we are """
+def parts_ahead_takt():
+    """ returns the difference between where we should be and where we are (uses takt rather than tct) """
     time = time_elapsed()
     expected = time / Var.takt
+    return Var.parts_delivered - int(expected)
+
+
+def parts_ahead_tct():
+    """ returns the difference between where we planned to be and where we are (uses tct rather than takt)"""
+    time = time_elapsed()
+    expected = time / Var.tct
     return Var.parts_delivered - int(expected)
 
 
