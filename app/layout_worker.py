@@ -5,6 +5,7 @@ app.setPollTime(50)
 
 # Drop down menus at top left #
 app.addMenuList('File', GUIVar.fileMenuList, menu_press)
+app.addMenuList('Help', ['Update'], menu_press)
 
 print('creating tabs')
 # Tabbed Frame that holds the whole GUI #

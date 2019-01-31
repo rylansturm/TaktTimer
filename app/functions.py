@@ -609,6 +609,8 @@ def menu_press(btn):
         app.stop()
     elif btn == 'Run Tracker':
         os.system('ssh pi@192.168.42.1 < ./run-tracker.sh&')
+    elif btn == 'Update':
+        software_update()
 
 
 def set_sequence_number(option_box):
@@ -794,3 +796,13 @@ def read_time_file(shift=None, name=None):
     app.stopFrame()
     Var.mark = datetime.datetime.now()
     print('finished with app.function.read_time_file')
+
+
+def software_update():
+    print('updating')
+    app.stop()
+    if GUIConfig.platform == 'linux':
+        os.system('bash ~/timer_update.sh')
+        os.system('python3 ~/TaktTimer/Timer.py')
+    else:
+        os.system('python Timer.py')
