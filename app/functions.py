@@ -78,17 +78,18 @@ def counting_worker():
     """ stop the timer from subtracting the break times when we start back up """
     if not Var.breaktime and Var.block == 0:  # when we first go to break
         Var.breaktime = True  # make sure the function isn't called again
-        if 0 < get_block_var() < len(Var.sched.sched):  # don't try to add a break value at the end of the shift
-            break_seconds = Var.sched.breakSeconds[(get_block_var() // 2) - 1]  # how many seconds for this break?
-            Var.mark += datetime.timedelta(seconds=break_seconds)  # push the mark forward
+        # if 0 < get_block_var() < len(Var.sched.sched):  # don't try to add a break value at the end of the shift
+        #     break_seconds = Var.sched.breakSeconds[(get_block_var() // 2) - 1]  # how many seconds for this break?
+        #     Var.mark += datetime.timedelta(seconds=break_seconds)  # push the mark forward
     elif Var.breaktime and Var.block != 0:  # when available time starts again:
         Var.breaktime = False  # reset this variable
+        Var.mark = Var.now
 
     label_update()  # separate function for readability
 
     """ update the main counter """
+    Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))  # expected_time - time_since_mark
     if Var.started and Var.block != 0:  # if we are in 'available time'
-        Var.tCycle = int(floor(Var.sequence_time - (Var.now - Var.mark).seconds))  # expected_time - time_since_mark
         app.setLabel('tCycle', countdown_format(Var.tCycle))  # countdown_format just makes it look better
     else:
         app.setLabel('tCycle', 'BRK')
@@ -286,7 +287,7 @@ def cycle():
         app.setLabel('Seq', countdown_format(Var.sequence_time))
         Var.batting_avg = Var.on_time / sum([Var.on_time, Var.late, Var.early])
         Var.mark = datetime.datetime.now()
-        yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
+        # yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
         # app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
         app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
                      '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
