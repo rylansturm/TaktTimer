@@ -2,8 +2,8 @@ from gpiozero import LED
 
 
 class Light:
-    r = LED(26, initial_value=True)
-    g = LED(25, initial_value=True)
+    r = LED(25, initial_value=True)
+    g = LED(26, initial_value=True)
     b = LED(4, initial_value=True)
 
     @staticmethod
