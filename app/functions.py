@@ -224,36 +224,47 @@ def run_lights():
     else:
         """ normal functioning during available time """
 
-        """ control red light """
-        if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
-            if Var.now.second % 2 == 0:  # blink the red light
-                Light.red(True)
+        """ control light """
+        if Var.tCycle < -window:  # when we miss TT
+            if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
+                if Var.now.second % 2 == 0:  # blink red/off
+                    Light.set_all(1, 0, 0)
+                else:
+                    Light.set_all(0, 0, 0)
+            else:  # if no signaled andon, just missed takt time
+                Light.set_all(1, 0, 0)  # solid red
+        elif -window <= Var.tCycle <= window:  # when we are in the target range
+            if Var.tCycle % 2 == 0:  # blink green/yellow  (green & red both on appears yellowish)
+                Light.set_all(0, 1, 0)
             else:
-                Light.red(False)
-        else:  # otherwise only turn the red light on when TT is missed
-            if Var.tCycle < -window:
-                Light.red(True)
+                Light.set_all(1, 1, 0)
+        else:  # when we are in normal cycling time
+            if Var.andon:
+                if Var.now.second % 2 == 0:  # blink green/red
+                    Light.set_all(1, 0, 0)
+                else:
+                    Light.set_all(0, 1, 0)
             else:
-                Light.red(False)
+                Light.set_all(0, 1, 0)  # solid green
 
-        """ control the green light """
-        if Var.tCycle > window:  # green is on when we haven't missed TT
-            Light.green(True)
-        elif -window <= Var.tCycle <= window:  # green flashes when in the target window
-            if Var.now.second % 2 == 0:
-                Light.green(True)
-            else:
-                Light.green(False)
-        else:
-            Light.green(False)
-
-        """ control buzzer """
-        if -window - 1 <= Var.tCycle < -window:  # buzzer is on for one second when TT missed
-            Light.buzzer(True)
-        if Var.tCycle < -window and Var.tCycle % 60 == 0:  # buzzer repeats once per minute when TT missed
-            Light.buzzer(True)
-        else:  # otherwise keep the buzzer off
-            Light.buzzer(False)
+        # """ control the green light """
+        # if Var.tCycle > window:  # green is on when we haven't missed TT
+        #     Light.green(True)
+        # elif -window <= Var.tCycle <= window:  # green flashes when in the target window
+        #     if Var.now.second % 2 == 0:
+        #         Light.green(True)
+        #     else:
+        #         Light.green(False)
+        # else:
+        #     Light.green(False)
+        #
+        # """ control buzzer """
+        # if -window - 1 <= Var.tCycle < -window:  # buzzer is on for one second when TT missed
+        #     Light.buzzer(True)
+        # if Var.tCycle < -window and Var.tCycle % 60 == 0:  # buzzer repeats once per minute when TT missed
+        #     Light.buzzer(True)
+        # else:  # otherwise keep the buzzer off
+        #     Light.buzzer(False)
 
 
 def cycle():
