@@ -197,6 +197,15 @@ def countdown_format(seconds: int):
     return seconds if hours < 0 else hour_label if hours else minute_label if minutes else second_label
 
 
+def key_press(key):
+    """ handles physical key presses (keyboard or pedal) """
+    if key == '<F11>':
+        app.exitFullscreen() if app.getFullscreen() else app.setFullscreen()
+
+
+app.bindKey('<F11>', key_press)
+
+
 def get_tct(parts_out):
     if Var.tct_from_kpi:
         return Var.tct_from_kpi
