@@ -629,8 +629,6 @@ def menu_press(btn):
         key_press('<F11>')
     elif btn == 'Exit':
         app.stop()
-    elif btn == 'Run Tracker':
-        os.system('ssh pi@192.168.42.1 < ./run-tracker.sh&')
     elif btn == 'Update':
         software_update()
 

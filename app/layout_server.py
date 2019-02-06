@@ -6,7 +6,7 @@ app.registerEvent(counting_server)
 
 # Drop down menus at top left #
 app.addMenuList('File', GUIVar.fileMenuList, menu_press)
-app.addMenuList('Options', ['Run Tracker'], menu_press)
+app.addMenuList('Options', ['Update'], menu_press)
 
 print('creating tabs for server')
 # Tabbed Frame that holds the whole GUI #
