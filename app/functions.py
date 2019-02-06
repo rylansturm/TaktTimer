@@ -195,9 +195,20 @@ def counting_server():
                 Var.schedule_times.append(time)
         Var.available_time = Var.kpi.schedule.available_time
         app.setOptionBox('Schedule: ', Var.kpi.schedule.name)
+        Var.tct_from_kpi = Var.kpi.plan_cycle_time
+        app.setLabel('plan_cycle', Var.tct_from_kpi)
         session.close()
     app.setEntry('demand', Var.demand)
     app.setLabel('totalTime', Var.available_time)
+    if Var.tct_from_kpi and app.getLabel('plan_cycle') == Var.tct_from_kpi:
+        app.setLabel('plan_cycle', Var.tct_from_kpi)
+        app.setLabelFg('plan_cycle', 'green')
+        app.setLabel('plan_cycle_label', 'Plan Cycle Time')
+        app.setLabelFg('plan_cycle_label', 'black')
+    else:
+        app.setLabelFg('plan_cycle', 'red')
+        app.setLabel('plan_cycle_label', 'Plan Cycle Time\n     NOT SET')
+        app.setLabelFg('plan_cycle_label', 'red')
     if (datetime.datetime.time(Var.now) > Var.schedule_times[-1] > Var.schedule_times[0]) or\
             datetime.time(23) > datetime.datetime.time(Var.now) > Var.schedule_times[-1]:
         Var.shift = shift_guesser()
