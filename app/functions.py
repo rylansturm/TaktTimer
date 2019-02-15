@@ -8,6 +8,8 @@ from appJar.appjar import ItemLookupError
 from sqlalchemy.orm.exc import NoResultFound
 if GUIConfig.platform == 'linux':
     from app.lights import *
+import json
+import requests
 
 
 c = configparser.ConfigParser()
@@ -40,6 +42,7 @@ class Var:
     late = 0                                    # number of cycles completed after target window
     on_time = 0                                 # number of cycles completed in target window
     hit = False                                 # whether the last cycle was on target, used for DB entry
+    code = 1                                    # early (0), on time (1), late (2), used for DB entry
     batting_avg = 0.0                           # average of cycles completed in target window
     last_cycle = 0                              # the cycle time of the most recent cycle
     times_list = []                             # complete list of each cycle time for current shift by this sequence
@@ -293,12 +296,15 @@ def cycle():
         if t > window:
             Var.hit = False
             Var.early += 1
+            Var.code = 0
         elif t < -window:
             Var.hit = False
             Var.late += 1
+            Var.code = 2
         else:
             Var.hit = True
             Var.on_time += 1
+            Var.code = 1
 
         Var.tct = get_tct()
         Var.sequence_time = Var.tct * Var.partsper
@@ -333,6 +339,16 @@ def data_log():
     session.add(new_cycle)
     session.commit()
     session.close()
+    data = {'d': str(Var.mark),
+            'sequence': Var.seq,
+            'cycle_time': Var.last_cycle,
+            'parts_per': Var.partsper,
+            'delivered': Var.parts_delivered,
+            'code': Var.code}
+    data_json = json.dumps(data)
+    payload = {'json_payload': data_json}
+    r = requests.post('https://andonresponse.com/api/cycles', json=data, verify=False)
+    print(r)
 
 
 def display_cycle_times():
