@@ -50,6 +50,7 @@ class Var:
     kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
                                     KPI.shift == 'Day').first()     # db entry for current shift (demand, schedule)
     kpi_id = None                               # id for simpler db queries
+    ARKPIID = None
     area = c['Var']['Area']
     ahead_takt = True                           # whether or not we are currently ahead of takt pace
     ahead_tct = True                            # whether or not we are currently ahead of tct pace
@@ -341,7 +342,8 @@ def data_log_cycle():
     session.add(new_cycle)
     session.commit()
     session.close()
-    data = {'d': str(Var.mark),
+    data = {'id_kpi': get_ARKPIID(),
+            'd': str(Var.mark),
             'sequence': Var.seq,
             'cycle_time': Var.last_cycle,
             'parts_per': Var.partsper,
@@ -372,6 +374,12 @@ def set_area(btn):
     c['Var']['Area'] = Var.area
     with open('install.ini', 'w') as configfile:
         c.write(configfile)
+
+
+def get_ARKPIID():
+    r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()))
+    Var.ARKPIID = r.json()['id']
+    return Var.ARKPIID
 
 
 def display_cycle_times():
