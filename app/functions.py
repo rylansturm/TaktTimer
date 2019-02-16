@@ -223,13 +223,6 @@ def counting_server():
         reset()
 
 
-def andon():
-    """ gives operator option to manually turn on red andon light for non takt-related andons """
-    Var.andon = True
-    Var.unresponded += 1
-    app.setButtonBg('TMAndonButton', GUIConfig.andonColor)
-
-
 def run_lights():
     """ controls the andon lights. called in counting_worker """
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
@@ -357,7 +350,6 @@ def data_log_cycle():
 
 def data_log_kpi():
     """ logging kpi info to andonresponse.com server """
-    session = create_session()
     data = {'area': Var.area,
             'shift': Var.shift,
             'schedule': Var.sched.name,
@@ -369,6 +361,20 @@ def data_log_kpi():
     print(r.json())
 
 
+def andon():
+    """ gives operator option to manually turn on red andon light for non takt-related andons """
+    Var.andon = True
+    Var.unresponded += 1
+    app.setButtonBg('TMAndonButton', GUIConfig.andonColor)
+    data = {'id_kpi': get_ARKPIID(),
+            'd': str(Var.now),
+            'sequence': Var.seq,
+            'responded': 0,
+            }
+    r = requests.post('https://andonresponse.com/api/andon', json=data, verify=False)
+    print(r.json())
+
+
 def set_area(btn):
     Var.area = app.getOptionBox('Area')
     c['Var']['Area'] = Var.area
@@ -377,8 +383,11 @@ def set_area(btn):
 
 
 def get_ARKPIID():
-    r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()))
-    Var.ARKPIID = r.json()['id']
+    r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()), verify=False)
+    try:
+        Var.ARKPIID = r.json()['id']
+    except KeyError:
+        Var.ARKPIID = None
     return Var.ARKPIID
 
 
