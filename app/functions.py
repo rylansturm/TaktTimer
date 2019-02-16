@@ -192,6 +192,7 @@ def counting_server():
             session.commit()
             Var.kpi_id = Var.kpi.id
             recalculate()
+            data_log_kpi()
         Var.schedule_times = []
         for time in Var.kpi.schedule.return_times():
             if time:
@@ -319,10 +320,10 @@ def cycle():
         # app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
         app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
                      '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
-        app.thread(data_log())  # save it! but don't make me wait on you.
+        app.thread(data_log_cycle())  # save it! but don't make me wait on you.
 
 
-def data_log():
+def data_log_cycle():
     """ where data goes to die I mean be analyzed """
     session = create_session()
     new_cycle = Cycles(d=Var.mark, seq=Var.seq, cycle_time=Var.last_cycle,
@@ -348,7 +349,21 @@ def data_log():
     data_json = json.dumps(data)
     payload = {'json_payload': data_json}
     r = requests.post('https://andonresponse.com/api/cycles', json=data, verify=False)
-    print(r)
+    print(r.json())
+
+
+def data_log_kpi():
+    """ logging kpi info to andonresponse.com server """
+    session = create_session()
+    data = {'area': 'Talladega',
+            'shift': Var.shift,
+            'schedule': Var.sched.name,
+            'd': Var.kpi.d,
+            'demand': Var.demand,
+            'plan_cycle_time': Var.tct_from_kpi
+            }
+    r = requests.post('https://andonresponse.com/api/kpi', json=data, verify=False)
+    print(r.json())
 
 
 def display_cycle_times():
@@ -481,6 +496,7 @@ def demand_set(btn):
     Var.demand = demand         # set global(ish) variable
     app.setEntry('demand', demand)  # oh yeah, write it back up there.
     recalculate()  # reset values for TT, TCT, Seq time, etc
+    data_log_kpi()
 
 
 def partsper_set(btn):
@@ -625,6 +641,7 @@ def recalculate():
     try:  # these labels only exist on the Server/Team Lead Type
         app.setLabel('takt2', countdown_format(int(Var.takt)))
         app.setEntry('demand', Var.demand)
+        data_log_kpi()
     except ItemLookupError:
         print('skipping certain labels belonging to Leader')
 
