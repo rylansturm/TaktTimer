@@ -15,6 +15,13 @@ import requests
 c = configparser.ConfigParser()
 c.read('install.ini')
 
+if 'area' not in c['Var']:
+    c['Var']['area'] = 'Talladega'
+    with open('install.ini', 'w') as configfile:
+        c.write(configfile)
+
+c.read('install.ini')
+
 
 class Var:
     """ Variables used in each app instance, constantly changing """
@@ -51,7 +58,7 @@ class Var:
                                     KPI.shift == 'Day').first()     # db entry for current shift (demand, schedule)
     kpi_id = None                               # id for simpler db queries
     ARKPIID = None
-    area = c['Var']['Area']
+    area = c['Var']['area']
     ahead_takt = True                           # whether or not we are currently ahead of takt pace
     ahead_tct = True                            # whether or not we are currently ahead of tct pace
     schedule_edited = False                     # whether TL has adjusted schedule (shows 'Custom' for schedule)
@@ -380,6 +387,8 @@ def set_area(btn):
     c['Var']['Area'] = Var.area
     with open('install.ini', 'w') as configfile:
         c.write(configfile)
+    if c['Install']['type'] == 'Server':
+        data_log_kpi()
 
 
 def get_ARKPIID():
