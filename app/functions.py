@@ -50,6 +50,7 @@ class Var:
     kpi = session.query(KPI).filter(KPI.d == datetime.date.today(),
                                     KPI.shift == 'Day').first()     # db entry for current shift (demand, schedule)
     kpi_id = None                               # id for simpler db queries
+    area = c['Var']['Area']
     ahead_takt = True                           # whether or not we are currently ahead of takt pace
     ahead_tct = True                            # whether or not we are currently ahead of tct pace
     schedule_edited = False                     # whether TL has adjusted schedule (shows 'Custom' for schedule)
@@ -355,7 +356,7 @@ def data_log_cycle():
 def data_log_kpi():
     """ logging kpi info to andonresponse.com server """
     session = create_session()
-    data = {'area': 'Talladega',
+    data = {'area': Var.area,
             'shift': Var.shift,
             'schedule': Var.sched.name,
             'd': str(kpi_date()),
@@ -364,6 +365,13 @@ def data_log_kpi():
             }
     r = requests.post('https://andonresponse.com/api/kpi', json=data, verify=False)
     print(r.json())
+
+
+def set_area(btn):
+    Var.area = app.getOptionBox('Area')
+    c['Var']['Area'] = Var.area
+    with open('install.ini', 'w') as configfile:
+        c.write(configfile)
 
 
 def display_cycle_times():
@@ -680,7 +688,6 @@ def set_sequence_number(option_box):
 def shift_guesser():
     """ returns the current shift based on the time """
     Var.now = datetime.datetime.now()
-    print('shift_guesser')
     return 'Grave' if Var.now.hour >= 23 else 'Swing' if Var.now.hour >= 15 \
         else 'Day' if Var.now.hour >= 7 else 'Grave'
 

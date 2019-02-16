@@ -81,6 +81,12 @@ with app.tabbedFrame('Tabs'):
                     app.addLabel('block%s' % block, 'time-time', 0, 0)
                     app.addLabel('block%sTotal' % block, 'Seconds', 1, 0)
                     # app.addLabel('block%sPercent' % block, 'Percent', 2, 0)
+        with app.frame('Meta', row=0, column=2):
+            app.setSticky('new')
+            app.setBg(GUIConfig.appBgColor)
+            app.addOptionBox('Area', ['Ace Post Leach', 'Brickyard', 'Talladega'])
+            app.setOptionBoxChangeFunction('Area', set_area)
+            app.setOptionBox('Area', c['Var']['Area'])
 print('done with creating layout at %s seconds' % (datetime.datetime.now()-Var.time_open).total_seconds())
 read_time_file(shift=Var.shift, name=Var.sched.name)
 

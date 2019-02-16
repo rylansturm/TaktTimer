@@ -125,8 +125,11 @@ with app.tabbedFrame('Tabs'):
                     app.addButton('%02dDNPartsOut' % int(inc[i]), parts_out_set, row=1, column=i + 1)
                     app.setButton('%02dUPPartsOut' % int(inc[i]), '+%s' % inc[i])
                     app.setButton('%02dDNPartsOut' % int(inc[i]), '-%s' % inc[i])
-        with app.frame('Parameters', row=0, column=2, rowspan=4):
-            app.setSticky('news')
+        app.addOptionBox('Area', ['Ace Post Leach', 'Brickyard', 'Talladega'], row=0, column=2)
+        app.setOptionBoxChangeFunction('Area', set_area)
+        app.setOptionBox('Area', c['Var']['Area'])
+        with app.frame('Parameters', row=1, column=2, rowspan=3):
+            app.setSticky('news')  # *fake*
             app.setBg(GUIConfig.appBgColor)
             # with app.frame('Shift', colspan=4):
             #     app.addLabel('start-end', 'time-time', 0, 0)
