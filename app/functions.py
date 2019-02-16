@@ -358,7 +358,7 @@ def data_log_kpi():
     data = {'area': 'Talladega',
             'shift': Var.shift,
             'schedule': Var.sched.name,
-            'd': Var.kpi.d,
+            'd': str(kpi_date()),
             'demand': Var.demand,
             'plan_cycle_time': Var.tct_from_kpi
             }
@@ -411,6 +411,7 @@ def log_tct(btn):
     kpi.plan_cycle_time = tct
     session.add(kpi)
     session.commit()
+    data_log_kpi()
 
 
 def use_tct():
