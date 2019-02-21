@@ -201,7 +201,7 @@ def counting_server():
             session.commit()
             Var.kpi_id = Var.kpi.id
             recalculate()
-            data_log_kpi()
+            app.thread(data_log_kpi)
         Var.schedule_times = []
         for time in Var.kpi.schedule.return_times():
             if time:
@@ -368,11 +368,7 @@ def data_log_kpi():
     print(r.json())
 
 
-def andon():
-    """ gives operator option to manually turn on red andon light for non takt-related andons """
-    Var.andon = True
-    Var.unresponded += 1
-    app.setButtonBg('TMAndonButton', GUIConfig.andonColor)
+def data_log_andon():
     data = {'id_kpi': get_ARKPIID(),
             'd': str(Var.now),
             'sequence': Var.seq,
@@ -382,13 +378,21 @@ def andon():
     print(r.json())
 
 
+def andon():
+    """ gives operator option to manually turn on red andon light for non takt-related andons """
+    Var.andon = True
+    Var.unresponded += 1
+    app.setButtonBg('TMAndonButton', GUIConfig.andonColor)
+    app.thread(data_log_andon)
+
+
 def set_area(btn):
     Var.area = app.getOptionBox('Area')
     c['Var']['Area'] = Var.area
     with open('install.ini', 'w') as configfile:
         c.write(configfile)
     if c['Install']['type'] == 'Server':
-        data_log_kpi()
+        app.thread(data_log_kpi)
 
 
 def get_ARKPIID():
@@ -445,7 +449,7 @@ def log_tct(btn):
     kpi.plan_cycle_time = tct
     session.add(kpi)
     session.commit()
-    data_log_kpi()
+    app.thread(data_log_kpi)
 
 
 def use_tct():
@@ -531,7 +535,7 @@ def demand_set(btn):
     Var.demand = demand         # set global(ish) variable
     app.setEntry('demand', demand)  # oh yeah, write it back up there.
     recalculate()  # reset values for TT, TCT, Seq time, etc
-    data_log_kpi()
+    app.thread(data_log_kpi)
 
 
 def partsper_set(btn):
@@ -676,7 +680,7 @@ def recalculate():
     try:  # these labels only exist on the Server/Team Lead Type
         app.setLabel('takt2', countdown_format(int(Var.takt)))
         app.setEntry('demand', Var.demand)
-        data_log_kpi()
+        app.thread(data_log_kpi)
     except ItemLookupError:
         print('skipping certain labels belonging to Leader')
 
