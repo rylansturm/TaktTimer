@@ -296,7 +296,7 @@ def time_elapsed():
 def kpi_date():
     """ returns the date used by the kpi table, which is the date the shift ends """
     date = datetime.date.today()  # Current date
-    if datetime.datetime.now().hour >= 11:  # if it's before midnight on Grave
+    if datetime.datetime.now().hour >= 23:  # if it's before midnight on Grave
         date += datetime.timedelta(days=1)  # use the end date
     return date
 

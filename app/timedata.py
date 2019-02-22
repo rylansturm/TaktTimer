@@ -7,7 +7,7 @@ from config import *
 def convert(date, time):
     """ changes time objects from schedule into datetime objects for specific shift
         allows for date change with grave shifts """
-    if time.hour >= 11:
+    if time.hour >= 23:
         date -= datetime.timedelta(days=1)
     var = datetime.datetime.combine(date, time)
     return var
