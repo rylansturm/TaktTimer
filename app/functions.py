@@ -586,8 +586,6 @@ def get_block_var():
     for time in time_list:
         if Var.now > time:
             passed += 1
-    if shift_guesser() == 'Grave':
-        passed -= 1
 
     """ at the end of the shift, run the reset function """
     if passed == 0:
