@@ -50,6 +50,8 @@ class Var:
     on_time = 0                                 # number of cycles completed in target window
     hit = False                                 # whether the last cycle was on target, used for DB entry
     code = 1                                    # early (0), on time (1), late (2), used for DB entry
+    block_cycles = 0
+    block_expected_cycles = 0
     batting_avg = 0.0                           # average of cycles completed in target window
     last_cycle = 0                              # the cycle time of the most recent cycle
     times_list = []                             # complete list of each cycle time for current shift by this sequence
@@ -96,6 +98,8 @@ def counting_worker():
     elif Var.breaktime and Var.block != 0:  # when available time starts again:
         Var.breaktime = False  # reset this variable
         Var.mark = Var.now
+        Var.block_cycles = 0
+        Var.block_expected_cycles = Var.sched.blockSeconds[Var.block-1] // Var.sequence_time
 
     label_update()  # separate function for readability
 
@@ -471,8 +475,9 @@ def label_update():
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
     disparity_takt = parts_ahead_takt() if parts_ahead_takt() >= 0 else -(parts_ahead_takt())
     disparity_tct = parts_ahead_tct() if parts_ahead_tct() >= 0 else -(parts_ahead_tct())
-    app.setLabel('partsAhead', disparity_takt)
-    app.setLabel('tctAhead', disparity_tct)
+    # app.setLabel('partsAhead', disparity_takt)
+    # app.setLabel('tctAhead', disparity_tct)
+    app.setLabel('blockCycles', '%s / %s' % (Var.block_cycles, Var.block_expected_cycles))
     app.setLabel('partsOut', Var.parts_delivered)
     app.setLabel('early', Var.early)
     app.setLabel('late', Var.late)
@@ -500,25 +505,25 @@ def label_update():
     except IndexError:
         pass
 
-    """ set the partsAhead label color and text ('ahead' or 'behind') """
-    if Var.ahead_takt and parts_ahead_takt() < 0:
-        Var.ahead_takt = False
-        app.setLabel('partsAheadLabel', '  Takt\n Parts\nBehind')
-        app.setLabelBg('partsAhead', 'red')
-    if not Var.ahead_takt and parts_ahead_takt() >= 0:
-        Var.ahead_takt = True
-        app.setLabel('partsAheadLabel', ' Takt\n Parts\nAhead')
-        app.setLabelBg('partsAhead', GUIConfig.appBgColor)
-
-    """ set the tctAhead label color and text ('ahead' or 'behind') """
-    if Var.ahead_tct and parts_ahead_tct() < 0:
-        Var.ahead_tct = False
-        app.setLabel('tctAheadLabel', '  PCT\n Parts\nBehind')
-        app.setLabelBg('tctAhead', 'red')
-    if not Var.ahead_tct and parts_ahead_tct() >= 0:
-        Var.ahead_tct = True
-        app.setLabel('tctAheadLabel', ' PCT\n Parts\nAhead')
-        app.setLabelBg('tctAhead', GUIConfig.appBgColor)
+    # """ set the partsAhead label color and text ('ahead' or 'behind') """
+    # if Var.ahead_takt and parts_ahead_takt() < 0:
+    #     Var.ahead_takt = False
+    #     app.setLabel('partsAheadLabel', '  Takt\n Parts\nBehind')
+    #     app.setLabelBg('partsAhead', 'red')
+    # if not Var.ahead_takt and parts_ahead_takt() >= 0:
+    #     Var.ahead_takt = True
+    #     app.setLabel('partsAheadLabel', ' Takt\n Parts\nAhead')
+    #     app.setLabelBg('partsAhead', GUIConfig.appBgColor)
+    #
+    # """ set the tctAhead label color and text ('ahead' or 'behind') """
+    # if Var.ahead_tct and parts_ahead_tct() < 0:
+    #     Var.ahead_tct = False
+    #     app.setLabel('tctAheadLabel', '  PCT\n Parts\nBehind')
+    #     app.setLabelBg('tctAhead', 'red')
+    # if not Var.ahead_tct and parts_ahead_tct() >= 0:
+    #     Var.ahead_tct = True
+    #     app.setLabel('tctAheadLabel', ' PCT\n Parts\nAhead')
+    #     app.setLabelBg('tctAhead', GUIConfig.appBgColor)
 
 
 def demand_set(btn):
@@ -683,6 +688,7 @@ def recalculate():
         app.thread(data_log_kpi)
     except ItemLookupError:
         print('skipping certain labels belonging to Leader')
+    Var.block_expected_cycles = Var.sched.blockSeconds[Var.block - 1] // Var.sequence_time
 
 
 def key_press(key):

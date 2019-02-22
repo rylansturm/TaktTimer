@@ -63,10 +63,13 @@ with app.tabbedFrame('Tabs'):
                 app.setButton('TMAndonButton', 'Andons')
                 app.setButtonBg('TMAndonButton', GUIConfig.buttonColor)
                 app.addLabel('TMAndon', Var.andonCountMsg, row=4, column=1)
-            app.addLabel('partsAheadLabel', '  Takt\n Parts\nAhead', row=5, column=0)
-            app.addLabel('partsAhead', 0, row=6, column=0)
-            app.addLabel('tctAheadLabel', '  PCT\n Parts\nAhead', row=5, column=1)
-            app.addLabel('tctAhead', 0, row=6, column=1)
+            with app.labelFrame('Current Block Cycles', row=5, column=0):
+                app.addLabel('blockCycles', '%s / %s' % (Var.block_cycles, Var.block_expected_cycles))
+                app.getLabelWidget('blockCycles').config(font='arial 64')
+            # app.addLabel('partsAheadLabel', '  Takt\n Parts\nAhead', row=5, column=0)
+            # app.addLabel('partsAhead', 0, row=6, column=0)
+            # app.addLabel('tctAheadLabel', '  PCT\n Parts\nAhead', row=5, column=1)
+            # app.addLabel('tctAhead', 0, row=6, column=1)
             # app.addButton('Reject + 1', press, row=5, column=1, rowspan=2)
             # app.setButtonBg('Reject + 1', GUIConfig.buttonColor)
 
