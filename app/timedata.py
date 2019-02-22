@@ -32,9 +32,7 @@ class TimeData:
         self.available = []
         date = datetime.date.today()
         if shift == 'Grave' and datetime.datetime.now().hour >= 23:
-            date -= datetime.timedelta(days=1)
-        else:
-            date = datetime.date.today()
+            date += datetime.timedelta(days=1)
         for time in [s.start1, s.start2, s.start3, s.start4, s.start5, s.start6, s.start7, s.start8]:
             try:
                 self.available.append(convert(date, time, shift=shift))
