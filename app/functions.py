@@ -197,11 +197,7 @@ def counting_server():
             Var.demand = Var.kpi.demand
             recalculate()
         except NoResultFound:  # make one if you didn't find one
-            if shift_guesser() == 'Grave' and datetime.datetime.time(Var.now) < datetime.time(7, 0):
-                date = datetime.date.today() - datetime.timedelta(days=1)
-            else:
-                date = datetime.date.today()
-            Var.kpi = KPI(d=date, shift=shift_guesser(),
+            Var.kpi = KPI(d=kpi_date(), shift=shift_guesser(),
                           demand=Var.demand, schedule=session.query(Schedule).filter(
                     Schedule.shift == shift_guesser(), Schedule.name == 'Regular').first())
             Var.demand = Var.kpi.demand
