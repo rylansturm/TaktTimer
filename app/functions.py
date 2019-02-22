@@ -387,6 +387,15 @@ def data_log_andon():
     print(r.json())
 
 
+def data_log_andon_response():
+    data = {'id_kpi': get_ARKPIID(),
+            'sequence': Var.seq,
+            'response_d': str(Var.now),
+            }
+    r = requests.post('https://andonresponse.com/api/andon/respond', json=data, verify=False)
+    print(r.json())
+
+
 def andon():
     """ gives operator option to manually turn on red andon light for non takt-related andons """
     Var.andon = True
@@ -647,6 +656,7 @@ def press(btn):
         Var.andonCount += Var.unresponded
         Var.unresponded = 0
         app.setButtonBg('TMAndonButton', GUIConfig.buttonColor)
+        app.thread(data_log_andon_response)
 
     """ reject 1 part """
     if btn == 'Reject + 1':
