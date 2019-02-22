@@ -171,6 +171,10 @@ def counting_worker():
                     Var.parts_delivered = session.query(Cycles.delivered).filter(
                         Cycles.kpi == kpi, Cycles.seq == Var.seq).order_by(
                         Cycles.d.desc()).first().delivered
+                    Var.block_cycles = session.query(Cycles).filter(
+                        Cycles.kpi == kpi, Cycles.seq == Var.seq,
+                        Cycles.d > Var.sched.available[Var.block-1],
+                        Cycles.d < Var.sched.breaks[Var.block-1]).count()
                     app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
                                  '%s / %s Parts' % (Var.parts_delivered, Var.demand))
         except NoResultFound:
@@ -292,6 +296,7 @@ def cycle():
     """ This is what happens when the button is pushed each cycle by the operators """
     if Var.tCycle < Var.sequence_time - GUIVar.cycle_time_out:  # helps avoid accidental button presses
         Var.parts_delivered += Var.partsper  # add parts to the delivered quantity
+        Var.block_cycles += 1
         t = Var.tCycle  # what did the timer read when we cycled?
         Var.last_cycle = Var.sequence_time - t
         Var.times_list.append(Var.last_cycle)
