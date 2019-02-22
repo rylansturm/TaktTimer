@@ -6,10 +6,10 @@ import os
 from models import *
 from appJar.appjar import ItemLookupError
 from sqlalchemy.orm.exc import NoResultFound
-if GUIConfig.platform == 'linux':
-    from app.lights import *
 import json
 import requests
+if GUIConfig.platform == 'linux':
+    from app.lights import *
 
 
 c = configparser.ConfigParser()
@@ -659,10 +659,10 @@ def press(btn):
 
 
 def kpi_date():
-    """ returns the date used by the kpi table, which is the date the shift starts for Grave """
+    """ returns the date used by the kpi table, which is the date the shift ends """
     date = datetime.date.today()  # Current date
-    if datetime.datetime.now().hour < 7:  # if it's after midnight on Grave
-        date -= datetime.timedelta(1)  # use the start date
+    if datetime.datetime.now().hour >= 11:  # if it's before midnight on Grave
+        date += datetime.timedelta(days=1)  # use the end date
     return date
 
 

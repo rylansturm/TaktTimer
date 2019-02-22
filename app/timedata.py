@@ -7,8 +7,8 @@ from config import *
 def convert(date, time):
     """ changes time objects from schedule into datetime objects for specific shift
         allows for date change with grave shifts """
-    if time.hour < 7:
-        date += datetime.timedelta(1)
+    if time.hour >= 11:
+        date -= datetime.timedelta(days=1)
     var = datetime.datetime.combine(date, time)
     return var
 
@@ -32,9 +32,9 @@ class TimeData:
         self.available = []
         date = datetime.date.today()
         if shift == 'Grave' and datetime.datetime.now().hour < 7:
-            date -= datetime.timedelta(1)
-        else:
             date = datetime.date.today()
+        else:
+            date -= datetime.timedelta(days=1)
         for time in [s.start1, s.start2, s.start3, s.start4, s.start5, s.start6, s.start7, s.start8]:
             try:
                 self.available.append(convert(date, time))
