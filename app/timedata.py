@@ -4,10 +4,10 @@ from models import *
 from config import *
 
 
-def convert(date, time):
+def convert(date, time, shift='Day'):
     """ changes time objects from schedule into datetime objects for specific shift
         allows for date change with grave shifts """
-    if time.hour >= 23:
+    if time.hour >= 23 and shift == 'Grave':
         date -= datetime.timedelta(days=1)
     var = datetime.datetime.combine(date, time)
     return var
@@ -37,7 +37,7 @@ class TimeData:
             date = datetime.date.today()
         for time in [s.start1, s.start2, s.start3, s.start4, s.start5, s.start6, s.start7, s.start8]:
             try:
-                self.available.append(convert(date, time))
+                self.available.append(convert(date, time, shift=shift))
             except TypeError:
                 pass
             except AttributeError:
