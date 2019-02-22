@@ -478,8 +478,8 @@ def label_update():
     app.setLabel('time', Var.now.strftime('%I:%M:%S %p'))
     app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
                  '%s / %s' % (int(time_elapsed()), Var.available_time))
-    disparity_takt = parts_ahead_takt() if parts_ahead_takt() >= 0 else -(parts_ahead_takt())
-    disparity_tct = parts_ahead_tct() if parts_ahead_tct() >= 0 else -(parts_ahead_tct())
+    # disparity_takt = parts_ahead_takt() if parts_ahead_takt() >= 0 else -(parts_ahead_takt())
+    # disparity_tct = parts_ahead_tct() if parts_ahead_tct() >= 0 else -(parts_ahead_tct())
     # app.setLabel('partsAhead', disparity_takt)
     # app.setLabel('tctAhead', disparity_tct)
     app.setLabel('blockCycles', '%s / %s' % (Var.block_cycles, Var.block_expected_cycles))
