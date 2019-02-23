@@ -238,35 +238,40 @@ def run_lights():
     """ controls the andon lights. called in counting_worker """
     window = GUIVar.target_window * Var.partsper  # the acceptable window for stable sequences
 
-    if Var.block == 0:  # do nothing on breaks
-        Light.set_all(0, 0, 0)
-    elif Var.tCycle <= GUIVar.buzzer_time_out:  # stop buzzing after so many seconds, but keep red light on
-        Light.set_all(1, 0, 0)
+    if Var.block == 0:  # solid yellow on breaks
+        Light.set_all(0, 0, 1)
     else:
         """ normal functioning during available time """
 
         """ control light """
-        if Var.tCycle < -window:  # when we miss TT
-            if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
-                if Var.now.second % 2 == 0:  # blink red/off
-                    Light.set_all(1, 0, 0)
-                else:
-                    Light.set_all(0, 0, 0)
-            else:  # if no signaled andon, just missed takt time
-                Light.set_all(1, 0, 0)  # solid red
-        elif -window <= Var.tCycle <= window:  # when we are in the target range
-            if Var.tCycle % 2 == 0:  # blink green/yellow  (green & red both on appears yellowish)
-                Light.set_all(0, 1, 0)
+        if Var.andon:
+            if Var.now.second % 2 == 0:
+                Light.set_all(1, 0, 0)
             else:
-                Light.set_all(1, 1, 0)
-        else:  # when we are in normal cycling time
-            if Var.andon:
-                if Var.now.second % 2 == 0:  # blink green/red
-                    Light.set_all(1, 0, 0)
-                else:
-                    Light.set_all(0, 1, 0)
-            else:
-                Light.set_all(0, 1, 0)  # solid green
+                Light.set_all(0, 0, 0)
+        else:
+            Light.set_all(0, 1, 0)
+        # if Var.tCycle < -window:  # when we miss TT
+        #     if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
+        #         if Var.now.second % 2 == 0:  # blink red/off
+        #             Light.set_all(1, 0, 0)
+        #         else:
+        #             Light.set_all(0, 0, 0)
+        #     else:  # if no signaled andon, just missed takt time
+        #         Light.set_all(1, 0, 0)  # solid red
+        # elif -window <= Var.tCycle <= window:  # when we are in the target range
+        #     if Var.tCycle % 2 == 0:  # blink green/yellow  (green & red both on appears yellowish)
+        #         Light.set_all(0, 1, 0)
+        #     else:
+        #         Light.set_all(1, 1, 0)
+        # else:  # when we are in normal cycling time
+        #     if Var.andon:
+        #         if Var.now.second % 2 == 0:  # blink green/red
+        #             Light.set_all(1, 0, 0)
+        #         else:
+        #             Light.set_all(0, 1, 0)
+        #     else:
+        #         Light.set_all(0, 1, 0)  # solid green
 
         # """ control the green light """
         # if Var.tCycle > window:  # green is on when we haven't missed TT
