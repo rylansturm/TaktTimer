@@ -250,7 +250,10 @@ def run_lights():
             else:
                 Light.set_all(0, 0, 0)
         else:
-            Light.set_all(0, 1, 0)
+            if Var.tCycle > -window:
+                Light.set_all(0, 1, 0)
+            else:
+                Light.set_all(1, 0, 0)
         # if Var.tCycle < -window:  # when we miss TT
         #     if Var.andon:  # if the operator manually signals the andon by pressing the tCycle label
         #         if Var.now.second % 2 == 0:  # blink red/off
