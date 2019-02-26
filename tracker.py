@@ -187,8 +187,8 @@ def counting():
                     meter_val = 100.0 if meter_val > 100 else meter_val
                 except ZeroDivisionError:
                     meter_val = 0.0
-                meter_label = ('%s:     %s / %s Cycles (%s current)' % (label, delivered_block_cycles,
-                                                                        int(total_expected_block_cycles), ahead))
+                meter_label = ('%s:     %s / %s' % (label, delivered_block_cycles,
+                                                    int(total_expected_block_cycles)))
                 Var.seq_meter_values[meter] = (meter_val/100, meter_label)
                 if app.getMeter(meter) != Var.seq_meter_values[meter]:
                     print(Var.seq_meter_values)
