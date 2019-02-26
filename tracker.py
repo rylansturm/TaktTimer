@@ -242,7 +242,7 @@ def get_tct(parts_out):
 
 
 def get_block_var():
-    now = datetime.datetime.time(datetime.datetime.now())
+    now = datetime.datetime.now()
     Var.sched = []
     try:
         for time in Var.schedule.return_schedule(Var.kpi.d):
