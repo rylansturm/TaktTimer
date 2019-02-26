@@ -72,7 +72,13 @@ class Schedule(Base):
                 self.start7, self.end7, self.start8, self.end8)
 
     def return_schedule(self, kpi_d=datetime.date.today()):
-        times = self.return_times()
+        times = list(self.return_times())
+        blanks = 0
+        for time in times:
+            if not time:
+                blanks += 1
+        for i in range(blanks):
+            times.remove(None)
         new_times = []
         for i in range(len(times)-1, -1, -1):
             time = times[i]
