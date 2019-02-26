@@ -176,7 +176,7 @@ def counting_worker():
                         Cycles.d > Var.sched.available[Var.block-1],
                         Cycles.d < Var.sched.breaks[Var.block-1]).count()
                     app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
-                                 '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
+                                 '%s / %s Cycles' % (Var.block_cycles, Var.block_expected_cycles))
         except NoResultFound:
             print("Either no KPI exists for the current time, or a duplicate was made.")
         Var.db_poll_count = 0
@@ -334,7 +334,7 @@ def cycle():
         # yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
         # app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
         app.setMeter('partsOutMeter', (Var.block_cycles/Var.block_expected_cycles) * 100,
-                     '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
+                     '%s / %s Cycles' % (Var.block_cycles, Var.block_expected_cycles))
         app.thread(data_log_cycle())  # save it! but don't make me wait on you.
 
 
@@ -503,7 +503,7 @@ def label_update():
     app.setLabel('battingAVG', '%.3f' % Var.batting_avg)
     app.setLabel('lastCycle', Var.last_cycle)
     app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
-                 '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
+                 '%s / %s Cycles' % (Var.block_cycles, Var.block_expected_cycles))
 
     """ sets TM andon label """
     if Var.andon:
@@ -582,7 +582,7 @@ def parts_out_set(btn):
     Var.parts_delivered = parts  # reset global(ish) variable
     app.setLabel('partsOut', Var.parts_delivered)  # write in on the gui
     app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
-                 '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
+                 '%s / %s Cycles' % (Var.block_cycles, Var.block_expected_cycles))
 
 
 def get_block_var():
@@ -677,7 +677,7 @@ def press(btn):
         yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
         app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
         app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
-                     '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
+                     '%s / %s Cycles' % (Var.block_cycles, Var.block_expected_cycles))
         print('Bye, part! Have fun on your first day at bearings!')
 
 
@@ -707,7 +707,7 @@ def recalculate():
         app.setLabel('TCT', countdown_format(Var.tct))
         app.setLabel('Seq', countdown_format(int(Var.sequence_time)))
         app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
-                     '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
+                     '%s / %s Cycles' % (Var.block_cycles, Var.block_expected_cycles))
     except ItemLookupError:
         print('skipping certain labels belonging to Worker')
     try:  # these labels only exist on the Server/Team Lead Type
