@@ -639,7 +639,10 @@ def block_time_elapsed():
     """ same as time_elapsed, but for individual blocks """
     now = datetime.datetime.now()
     block = get_block_var()
-    elapsed = (now - Var.sched.sched[block-1]).total_seconds()
+    if block != 0:
+        elapsed = (now - Var.sched.sched[block-1]).total_seconds()
+    else:
+        elapsed = 0
     return elapsed
 
 
