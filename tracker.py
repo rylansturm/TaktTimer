@@ -160,9 +160,9 @@ def counting():
             cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
             tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
             if get_block_var() % 2 != 0:
-                Var.block_available_time = time_dif(combine(Var.sched[get_block_var()-1]),
-                                                    combine(Var.sched[get_block_var()]))
-                Var.block_time_elapsed = time_dif(combine(Var.sched[get_block_var()-1]),
+                Var.block_available_time = time_dif(Var.sched[get_block_var()-1],
+                                                    Var.sched[get_block_var()])
+                Var.block_time_elapsed = time_dif(Var.sched[get_block_var()-1],
                                                   datetime.datetime.now())
                 seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
                 delivered = seq_cycles.first().delivered
@@ -172,7 +172,8 @@ def counting():
                 else:
                     total_expected_block_cycles = Var.block_available_time // (Var.takt * cycle.parts_per)
                     current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
-                delivered_block_cycles = delivered // cycle.parts_per
+                delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
+                                                           Cycles.d <= Var.sched[get_block_var()])
                 ahead = delivered_block_cycles - current_expected_block_cycles
                 ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
                 app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))
@@ -244,27 +245,15 @@ def get_block_var():
     now = datetime.datetime.time(datetime.datetime.now())
     Var.sched = []
     try:
-        for time in Var.schedule.return_times():
+        for time in Var.schedule.return_schedule(Var.kpi.d):
             if time:
                 Var.sched.append(time)
     except AttributeError:
         pass
     var = 0
-    try:
-        if shift_guesser() == 'Grave':
-            if now > Var.sched[0]:
-                var = 1
-            else:
-                var = 1
-                for time in Var.sched[1:]:
-                    if now > time:
-                        var += 1
-        else:
-            for time in Var.sched:
-                if now > time:
-                    var += 1
-    except IndexError:
-        var = 0
+    for time in Var.sched:
+        if now > time:
+            var += 1
     Var.breaktime = True if var % 2 == 0 else False
     return var
 

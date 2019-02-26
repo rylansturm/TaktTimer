@@ -71,6 +71,22 @@ class Schedule(Base):
                 self.start4, self.end4, self.start5, self.end5, self.start6, self.end6,
                 self.start7, self.end7, self.start8, self.end8)
 
+    def return_schedule(self, kpi_d=datetime.date.today()):
+        times = self.return_times()
+        new_times = []
+        for i in range(len(times)-1, -1, -1):
+            time = times[i]
+            if type(time) == datetime.time:
+                if i < len(times) - 1:
+                    if time < times[i+1]:
+                        new_time = datetime.datetime.combine(kpi_d, time)
+                    else:
+                        new_time = datetime.datetime.combine(kpi_d - datetime.timedelta(1), time)
+                else:
+                    new_time = datetime.datetime.combine(kpi_d, time)
+                new_times.insert(0, new_time)
+        return new_times
+
     def __repr__(self):
         return "<Schedule Object '%s' for %s shift>" % (self.name, self.shift)
 
