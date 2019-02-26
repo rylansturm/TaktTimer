@@ -47,7 +47,8 @@ session = create_session()
 
 app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
 app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
-app.addLabel('onOffTrackLabel', 'Current Expectation: 0\n Demand: 0', colspan=2)
+app.addLabel('header', 'Cycles Completed Per Sequence This Block', colspan=2)
+app.getLabelWidget('header').config(font='arial 40')
 app.getLabelWidget('time').config(font='arial 48')
 
 
@@ -74,7 +75,8 @@ def update():
             app.removeAllWidgets()
             app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
             app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
-            app.addLabel('onOffTrackLabel', 'Current Expectation: 0\n Demand: 0', colspan=2)
+            app.addLabel('header', 'Cycles Completed Per Sequence This Block', colspan=2)
+            app.getLabelWidget('header').config(font='arial 40')
             app.getLabelWidget('time').config(font='arial 48')
             try:
                 Var.overall_stability = (len(Var.cycles.filter(Cycles.hit == 1).all()) /
@@ -127,8 +129,6 @@ def update():
             pass
         try:
             app.setLabel('overallStability', 'On Time Delivery: %i%%' % Var.overall_stability)
-            app.setLabel('onOffTrackLabel',
-                         'Current Expectation: %s\n\t  Demand: %s' % (int(time_elapsed() // Var.takt), Var.demand))
         except ItemLookupError or ZeroDivisionError:
             pass
     except NoResultFound:
@@ -174,7 +174,7 @@ def counting():
                     current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
                 delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
                                                            Cycles.d <= Var.sched[get_block_var()]).count()
-                ahead = delivered_block_cycles - current_expected_block_cycles
+                ahead = int(delivered_block_cycles - current_expected_block_cycles)
                 ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
                 app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))
                 if tCycle < 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.andonColor:
