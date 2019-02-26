@@ -160,30 +160,37 @@ def counting():
             cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
             tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
             if get_block_var() % 2 != 0:
-                # Var.block_available_time = (datetime.datetime.now() - Var.sched[get_block_var()-1]).total_seconds()
+                Var.block_available_time = (Var.sched[get_block_var()] - Var.sched[get_block_var()-1]).total_seconds()
+                Var.block_time_elapsed = (datetime.datetime.now() - Var.sched[get_block_var()-1]).total_seconds()
+                seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
+                delivered = seq_cycles.first().delivered
+                if Var.tct_from_kpi:
+                    total_expected_block_cycles = Var.block_available_time // (Var.tct_from_kpi * cycle.parts_per)
+                    current_expected_block_cycles = Var.block_time_elapsed // (Var.tct_from_kpi * cycle.parts_per)
+                else:
+                    total_expected_block_cycles = Var.block_available_time // (Var.takt * cycle.parts_per)
+                    current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
+                delivered_block_cycles = delivered // cycle.parts_per
+                ahead = delivered_block_cycles - current_expected_block_cycles
+                ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
                 app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))
                 if tCycle < 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.andonColor:
                     app.setLabelBg('seq%sCurrent' % seq, GUIConfig.andonColor)
                 if tCycle > 0 and app.getLabelBg('seq%sCurrent' % seq) != GUIConfig.appBgColor:
                     app.setLabelBg('seq%sCurrent' % seq, GUIConfig.appBgColor)
-            label = Var.labels[seq]
-            seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
-            delivered = seq_cycles.first().delivered
-            expected_cycles = expected // cycle.parts_per
-            delivered_cycles = delivered // cycle.parts_per
-            ahead = delivered_cycles - expected_cycles
-            ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
-            try:
-                meter_val = (delivered_cycles / (Var.kpi.demand / cycle.parts_per)) * 100
-                meter_val = 100.0 if meter_val > 100 else meter_val
-            except ZeroDivisionError:
-                meter_val = 0.0
-            meter_label = ('%s:     %s / %s Cycles (%s)' % (label, delivered_cycles, expected_cycles, ahead))
-            Var.seq_meter_values[meter] = (meter_val/100, meter_label)
-            if app.getMeter(meter) != Var.seq_meter_values[meter]:
-                print(Var.seq_meter_values)
-                print(app.getMeter(meter))
-                app.setMeter(meter, meter_val, meter_label)
+                label = Var.labels[seq]
+                try:
+                    meter_val = (delivered_block_cycles / total_expected_block_cycles) * 100
+                    meter_val = 100.0 if meter_val > 100 else meter_val
+                except ZeroDivisionError:
+                    meter_val = 0.0
+                meter_label = ('%s:     %s / %s Cycles (%s current)' % (label, delivered_block_cycles,
+                                                                        total_expected_block_cycles, ahead))
+                Var.seq_meter_values[meter] = (meter_val/100, meter_label)
+                if app.getMeter(meter) != Var.seq_meter_values[meter]:
+                    print(Var.seq_meter_values)
+                    print(app.getMeter(meter))
+                    app.setMeter(meter, meter_val, meter_label)
     except AttributeError:
         print(AttributeError)
         pass
