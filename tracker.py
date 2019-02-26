@@ -48,7 +48,7 @@ session = create_session()
 app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
 app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
 app.addLabel('header', 'Cycles Completed Per Sequence This Block', colspan=2)
-app.getLabelWidget('header').config(font='arial 40')
+app.getLabelWidget('header').config(font='arial 32')
 app.getLabelWidget('time').config(font='arial 48')
 
 
@@ -76,7 +76,7 @@ def update():
             app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
             app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
             app.addLabel('header', 'Cycles Completed Per Sequence This Block', colspan=2)
-            app.getLabelWidget('header').config(font='arial 40')
+            app.getLabelWidget('header').config(font='arial 32')
             app.getLabelWidget('time').config(font='arial 48')
             try:
                 Var.overall_stability = (len(Var.cycles.filter(Cycles.hit == 1).all()) /
