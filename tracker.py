@@ -160,8 +160,10 @@ def counting():
             cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
             tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
             if get_block_var() % 2 != 0:
-                Var.block_available_time = (Var.sched[get_block_var()] - Var.sched[get_block_var()-1]).total_seconds()
-                Var.block_time_elapsed = (datetime.datetime.now() - Var.sched[get_block_var()-1]).total_seconds()
+                Var.block_available_time = time_dif(combine(Var.sched[get_block_var()-1]),
+                                                    combine(Var.sched[get_block_var()]))
+                Var.block_time_elapsed = time_dif(combine(Var.sched[get_block_var()-1]),
+                                                  datetime.datetime.now())
                 seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
                 delivered = seq_cycles.first().delivered
                 if Var.tct_from_kpi:
@@ -311,6 +313,16 @@ def kpi_date():
     if datetime.datetime.now().hour >= 23:  # if it's before midnight on Grave
         date += datetime.timedelta(days=1)  # use the end date
     return date
+
+
+def combine(time):
+    return datetime.datetime.combine(datetime.date.today(), time)
+
+
+def time_dif(time1, time2):
+    timedif = (time2 - time1).total_seconds()
+    timedif += 86400 if timedif < 0 else 0
+    return timedif
 
 
 app.registerEvent(counting)
