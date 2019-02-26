@@ -173,7 +173,7 @@ def counting():
                     total_expected_block_cycles = Var.block_available_time // (Var.takt * cycle.parts_per)
                     current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
                 delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
-                                                           Cycles.d <= Var.sched[get_block_var()])
+                                                           Cycles.d <= Var.sched[get_block_var()]).count()
                 ahead = delivered_block_cycles - current_expected_block_cycles
                 ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
                 app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))
