@@ -51,7 +51,7 @@ class Var:
     hit = False                                 # whether the last cycle was on target, used for DB entry
     code = 1                                    # early (0), on time (1), late (2), used for DB entry
     block_cycles = 0
-    block_expected_cycles = 0
+    block_expected_cycles = 1
     batting_avg = 0.0                           # average of cycles completed in target window
     last_cycle = 0                              # the cycle time of the most recent cycle
     times_list = []                             # complete list of each cycle time for current shift by this sequence
@@ -175,8 +175,8 @@ def counting_worker():
                         Cycles.kpi == kpi, Cycles.seq == Var.seq,
                         Cycles.d > Var.sched.available[Var.block-1],
                         Cycles.d < Var.sched.breaks[Var.block-1]).count()
-                    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                                 '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+                    app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
+                                 '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
         except NoResultFound:
             print("Either no KPI exists for the current time, or a duplicate was made.")
         Var.db_poll_count = 0
@@ -275,7 +275,7 @@ def run_lights():
         #             Light.set_all(0, 1, 0)
         #     else:
         #         Light.set_all(0, 1, 0)  # solid green
-
+        #
         # """ control the green light """
         # if Var.tCycle > window:  # green is on when we haven't missed TT
         #     Light.green(True)
@@ -333,8 +333,8 @@ def cycle():
         Var.mark = datetime.datetime.now()
         # yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
         # app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
-        app.setMeter('partsOutMeter', (Var.parts_delivered/Var.demand) * 100,
-                     '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+        app.setMeter('partsOutMeter', (Var.block_cycles/Var.block_expected_cycles) * 100,
+                     '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
         app.thread(data_log_cycle())  # save it! but don't make me wait on you.
 
 
@@ -489,8 +489,8 @@ def use_tct():
 def label_update():
     """ updates the majority of labels throughout GUI, called from counting function """
     app.setLabel('time', Var.now.strftime('%I:%M:%S %p'))
-    app.setMeter('timeMeter', (time_elapsed()/Var.available_time) * 100,
-                 '%s / %s' % (int(time_elapsed()), Var.available_time))
+    app.setMeter('timeMeter', (block_time_elapsed()/Var.sched.blockSeconds[Var.block-1]) * 100,
+                 '%s / %s' % (int(block_time_elapsed()), Var.sched.blockSeconds[Var.block-1]))
     # disparity_takt = parts_ahead_takt() if parts_ahead_takt() >= 0 else -(parts_ahead_takt())
     # disparity_tct = parts_ahead_tct() if parts_ahead_tct() >= 0 else -(parts_ahead_tct())
     # app.setLabel('partsAhead', disparity_takt)
@@ -502,8 +502,8 @@ def label_update():
     app.setLabel('onTime', Var.on_time)
     app.setLabel('battingAVG', '%.3f' % Var.batting_avg)
     app.setLabel('lastCycle', Var.last_cycle)
-    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+    app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
+                 '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
 
     """ sets TM andon label """
     if Var.andon:
@@ -581,8 +581,8 @@ def parts_out_set(btn):
     parts = 0 if parts < 0 else parts  # parts won't go below 0
     Var.parts_delivered = parts  # reset global(ish) variable
     app.setLabel('partsOut', Var.parts_delivered)  # write in on the gui
-    app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                 '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+    app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
+                 '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
 
 
 def get_block_var():
@@ -635,6 +635,14 @@ def time_elapsed():
     return elapsed
 
 
+def block_time_elapsed():
+    """ same as time_elapsed, but for individual blocks """
+    now = datetime.datetime.now()
+    block = get_block_var()
+    elapsed = (now - Var.sched.sched[block-1]).total_seconds()
+    return elapsed
+
+
 def parts_ahead_takt():
     """ returns the difference between where we should be and where we are (uses takt rather than tct) """
     time = time_elapsed()
@@ -665,8 +673,8 @@ def press(btn):
         Var.rejects += 1
         yields = (Var.parts_delivered - Var.rejects) / Var.parts_delivered
         app.setButton('Reject + 1', 'Reject + 1\nRejects: %s\nYields: %.02f' % (Var.rejects, yields))
-        app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                     '%s / %s Parts' % (Var.parts_delivered - Var.rejects, Var.demand - Var.rejects))
+        app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
+                     '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
         print('Bye, part! Have fun on your first day at bearings!')
 
 
@@ -695,8 +703,8 @@ def recalculate():
         app.setLabel('Takt', countdown_format(int(Var.takt)))
         app.setLabel('TCT', countdown_format(Var.tct))
         app.setLabel('Seq', countdown_format(int(Var.sequence_time)))
-        app.setMeter('partsOutMeter', (Var.parts_delivered / Var.demand) * 100,
-                     '%s / %s Parts' % (Var.parts_delivered, Var.demand))
+        app.setMeter('partsOutMeter', (Var.block_cycles / Var.block_expected_cycles) * 100,
+                     '%s / %s Parts' % (Var.block_cycles, Var.block_expected_cycles))
     except ItemLookupError:
         print('skipping certain labels belonging to Worker')
     try:  # these labels only exist on the Server/Team Lead Type
