@@ -206,8 +206,8 @@ def counting():
                     current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
                 delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
                                                            Cycles.d <= Var.sched[get_block_var()]).count()
-                andons = Var.data[str(seq)]['Andons']
-                responded = Var.data[str(seq)]['Responded']
+                andons = Var.data[str(seq)]['Andons'] if Var.data else 0
+                responded = Var.data[str(seq)]['Responded'] if Var.data else 0
                 if not responded and app.getLabelBg('seq%sAndons' % seq) != GUIConfig.andonColor:
                     app.setLabelBg('seq%sAndons' % seq, GUIConfig.andonColor)
                     app.setLabel('seq%sAndons' % seq, '%s Andons' % andons)
