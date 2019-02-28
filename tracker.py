@@ -214,10 +214,9 @@ def counting():
                     responded = True
                 if not responded and app.getLabelBg('seq%sAndons' % seq) != GUIConfig.andonColor:
                     app.setLabelBg('seq%sAndons' % seq, GUIConfig.andonColor)
-                    app.setLabel('seq%sAndons' % seq, '%s Andons' % andons)
                 if responded and app.getLabelBg('seq%sAndons' % seq) != 'green':
                     app.setLabelBg('seq%sAndons' % seq, 'green')
-                    app.setLabel('seq%sAndons' % seq, '%s Andons' % andons)
+                app.setLabel('seq%sAndons' % seq, '%s Andons' % andons)
                 ahead = int(delivered_block_cycles - current_expected_block_cycles)
                 ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
                 app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))
