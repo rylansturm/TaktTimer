@@ -5,23 +5,47 @@ from appJar import gui
 from appJar.appjar import ItemLookupError
 from sqlalchemy.orm.exc import NoResultFound
 import datetime
+import requests
+import configparser
+
+c = configparser.ConfigParser()
+c.read('install.ini')
+
+if 'area' not in c['Var']:
+    c['Var']['area'] = 'Talladega'
+    with open('install.ini', 'w') as configfile:
+        c.write(configfile)
 
 
 class Var:
+    area = c['Var']['area']
     length = 0
     poll_count = 10
     cycles = None
     sequences = []
-    labels = {1: 'Sequence 1',
-              2: 'Sequence 2',
-              3: 'Sequence 3',
-              4: 'Sequence 4',
-              5: 'Sequence 5',
-              6: 'Sequence 6',
-              7: 'Sequence 7',
-              8: 'Sequence 8',
-              9: 'Sequence 9',
-              }
+    data = None
+    if area == 'Talladega':
+        labels = {1: 'Assembly  ',
+                  2: 'Presses   ',
+                  3: 'Blaster   ',
+                  4: 'Lapping   ',
+                  5: 'Pre-Size  ',
+                  6: 'Bonder    ',
+                  7: 'Finish CG ',
+                  8: 'Chamfers  ',
+                  9: 'Sequence 9',
+                  }
+    else:
+        labels = {1: 'Sequence 1',
+                  2: 'Sequence 2',
+                  3: 'Sequence 3',
+                  4: 'Sequence 4',
+                  5: 'Sequence 5',
+                  6: 'Sequence 6',
+                  7: 'Sequence 7',
+                  8: 'Sequence 8',
+                  9: 'Sequence 9',
+                  }
     kpi = None
     schedule = None
     sched = []
@@ -33,6 +57,16 @@ class Var:
     overall_stability = 0.0
     seq_meter_values = {}
     block_available_time = 6000
+
+
+def get_block_data():
+    area = Var.area
+    shift = shift_guesser()
+    date = kpi_date()
+    block = (get_block_var() // 2) + 1
+    r = requests.get('https://andonresponse.com/api/cycles/block_tracker/<area>/<shift>/<date>/<block>'.format(
+        area, shift, date, block), verify=False)
+    return r.json()
 
 
 def shift_guesser():
@@ -61,6 +95,7 @@ def update():
             Var.kpi = kpi
             Var.schedule = kpi.schedule
             Var.tct_from_kpi = kpi.plan_cycle_time
+            Var.data = get_block_data()
             try:
                 Var.takt = Var.kpi.schedule.available_time / Var.kpi.demand
             except ZeroDivisionError:
@@ -94,12 +129,9 @@ def update():
                     app.addMeter('seq%sMeter' % seq, row=0, column=0, colspan=4)
                     app.setMeterFill('seq%sMeter' % seq, 'green')
                     app.setMeterHeight('seq%sMeter' % seq, height)
-                    # app.addLabel('seq%sAVGLabel' % seq, 'Stability: ', 1, 0)
-                    app.addLabel('seq%sAVG' % seq, 'On Time Delivery: 0%', 2, 0)
-                    # app.addLabel('seq%sEarlyLateLabel' % seq, 'Early - Late', 1, 2)
-                    # app.addLabel('seq%sEarlyLate' % seq, 'early-late', 2, 2)
-                    # app.addLabel('seq%sCurrentLabel' % seq, 'Current', 1, 3)
-                    app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 2, 3)
+                    app.addLabel('seq%sAndons' % seq, '0 Andons', 1, 0)
+                    app.addLabel('seq%sAVG' % seq, 'On Time: 0%', 1, 1)
+                    app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 1, 3)
         try:
             expected = int(time_elapsed() // Var.takt)
         except ZeroDivisionError:
@@ -174,6 +206,14 @@ def counting():
                     current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
                 delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
                                                            Cycles.d <= Var.sched[get_block_var()]).count()
+                andons = Var.data[str(seq)]['Andons']
+                responded = Var.data[str(seq)]['Responded']
+                if not responded and app.getLabelBg('seq%sAndons' % seq) != GUIConfig.andonColor:
+                    app.setLabelBg('seq%sAndons' % seq, GUIConfig.andonColor)
+                    app.setLabel('seq%sAndons' % seq, '%s Andons' % andons)
+                if responded and app.getLabelBg('seq%sAndons' % seq) != 'green':
+                    app.setLabelBg('seq%sAndons' % seq, 'green')
+                    app.setLabel('seq%sAndons' % seq, '%s Andons' % andons)
                 ahead = int(delivered_block_cycles - current_expected_block_cycles)
                 ahead = (('+' + str(ahead)) if ahead > 0 else str(ahead))
                 app.setLabel('seq%sCurrent' % seq, 'Current Timer: %s' % countdown_format(tCycle))

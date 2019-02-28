@@ -12,10 +12,15 @@ c.read(file)
 
 class Var:
     install_type = None
+    install_area = None
 
 
 def set_type():
     Var.install_type = inst.getOptionBox('type')
+
+
+def set_area():
+    Var.install_area = inst.getOptionBox('area')
 
 
 def install():
@@ -25,6 +30,7 @@ def install():
     c['Database'] = {'file': inst.getEntry('file')}
     c['Var'] = {'partsper': '1',
                 'seq': '1',
+                'area': Var.install_area
                 }
     if Var.install_type == 'Server':
         create_db()
@@ -60,7 +66,9 @@ with inst.pagedWindow('Pages'):
     with inst.page(sticky='n'):
         inst.addMessage('Installer1', 'First, what type of install will this be?')
         inst.addOptionBox('type', ['-Select-', 'Server', 'Team Lead', 'Worker'])
+        inst.addOptionBox('area', ['-Select-', 'Talladega', 'Brickyard', 'Ace Post Leach'])
         inst.setOptionBoxChangeFunction('type', set_type)
+        inst.setOptionBoxChangeFunction('area', set_area)
     with inst.page(sticky='n'):
         inst.addMessage('Installer2', 'Second, where will the data be stored?')
         inst.addEntry('file', row=1, column=0)
