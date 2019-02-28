@@ -130,6 +130,7 @@ def update():
                     app.setMeterFill('seq%sMeter' % seq, 'green')
                     app.setMeterHeight('seq%sMeter' % seq, height)
                     app.addLabel('seq%sAndons' % seq, '0 Andons', 1, 0)
+                    app.setLabelFg('seq%sAndons' % seq, 'white')
                     app.addLabel('seq%sAVG' % seq, 'On Time: 0%', 1, 1)
                     app.addLabel('seq%sCurrent' % seq, 'Current Timer: 0', 1, 3)
         try:
