@@ -23,7 +23,7 @@ class Var:
     poll_count = 10
     cycles = None
     sequences = []
-    data = None
+    data = {}
     if area == 'Talladega':
         labels = {1: 'Assembly  ',
                   2: 'Presses   ',
@@ -88,6 +88,7 @@ app.getLabelWidget('time').config(font='arial 48')
 
 def update():
     print('update')
+    Var.data = get_block_data()
     try:
         kpi = session.query(KPI).filter(KPI.shift == shift_guesser(),
                                         KPI.d == kpi_date()).one()
@@ -95,7 +96,6 @@ def update():
             Var.kpi = kpi
             Var.schedule = kpi.schedule
             Var.tct_from_kpi = kpi.plan_cycle_time
-            Var.data = get_block_data()
             try:
                 Var.takt = Var.kpi.schedule.available_time / Var.kpi.demand
             except ZeroDivisionError:
@@ -207,8 +207,8 @@ def counting():
                 delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
                                                            Cycles.d <= Var.sched[get_block_var()]).count()
                 try:
-                    andons = Var.data[str(seq)]['Andons'] if Var.data else 0
-                    responded = Var.data[str(seq)]['Responded'] if Var.data else 0
+                    andons = Var.data[str(seq)]['Andons']
+                    responded = Var.data[str(seq)]['Responded']
                 except KeyError:
                     andons = 0
                     responded = True
