@@ -238,6 +238,9 @@ def counting():
                     print(Var.seq_meter_values)
                     print(app.getMeter(meter))
                     app.setMeter(meter, meter_val, meter_label)
+            else:
+                app.setLabel('seq%sCurrent' % seq, 'BREAK')
+                app.setLabelBg('seq%sCurrent' % seq, 'yellow')
     except AttributeError:
         print(AttributeError)
         pass

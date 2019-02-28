@@ -250,7 +250,7 @@ def run_lights():
             else:
                 Light.set_all(0, 0, 0)
         else:
-            if Var.tCycle > -window:
+            if Var.tCycle >= -window:
                 Light.set_all(0, 1, 0)
             else:
                 Light.set_all(1, 0, 0)
