@@ -64,7 +64,7 @@ def get_block_data():
     shift = shift_guesser()
     date = kpi_date()
     block = (get_block_var() // 2) + 1
-    r = requests.get('https://andonresponse.com/api/cycles/block_tracker/<area>/<shift>/<date>/<block>'.format(
+    r = requests.get('https://andonresponse.com/api/cycles/block_tracker/{}/{}/{}/{}'.format(
         area, shift, date, block), verify=False)
     return r.json()
 
