@@ -364,7 +364,7 @@ def data_log_cycle():
             'code': Var.code}
     data_json = json.dumps(data)
     payload = {'json_payload': data_json}
-    r = requests.post('https://andonresponse.com/api/cycles', json=data, verify=False)
+    r = requests.post('https://andonresponse.com/api/cycles', json=data)
     print(r.json())
 
 
@@ -377,7 +377,7 @@ def data_log_kpi():
             'demand': Var.demand,
             'plan_cycle_time': Var.tct_from_kpi
             }
-    r = requests.post('https://andonresponse.com/api/kpi', json=data, verify=False)
+    r = requests.post('https://andonresponse.com/api/kpi', json=data)
     print(r.json())
 
 
@@ -387,7 +387,7 @@ def data_log_andon():
             'sequence': Var.seq,
             'responded': 0,
             }
-    r = requests.post('https://andonresponse.com/api/andon', json=data, verify=False)
+    r = requests.post('https://andonresponse.com/api/andon', json=data)
     print(r.json())
 
 
@@ -396,7 +396,7 @@ def data_log_andon_response():
             'sequence': Var.seq,
             'response_d': str(Var.now),
             }
-    r = requests.post('https://andonresponse.com/api/andon/respond', json=data, verify=False)
+    r = requests.post('https://andonresponse.com/api/andon/respond', json=data)
     print(r.json())
 
 
@@ -418,7 +418,7 @@ def set_area(btn):
 
 
 def get_ARKPIID():
-    r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()), verify=False)
+    r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()))
     try:
         Var.ARKPIID = r.json()['id']
     except KeyError:
