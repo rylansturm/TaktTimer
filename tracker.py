@@ -193,10 +193,13 @@ def counting():
             cycle = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc()).first()
             tCycle = int((Var.tct[seq] * cycle.parts_per) - (now - cycle.d).seconds)
             if get_block_var() % 2 != 0:
-                Var.block_available_time = time_dif(Var.sched[get_block_var()-1],
-                                                    Var.sched[get_block_var()])
-                Var.block_time_elapsed = time_dif(Var.sched[get_block_var()-1],
-                                                  datetime.datetime.now())
+                try:
+                    Var.block_available_time = time_dif(Var.sched[get_block_var()-1],
+                                                        Var.sched[get_block_var()])
+                    Var.block_time_elapsed = time_dif(Var.sched[get_block_var()-1],
+                                                      datetime.datetime.now())
+                except IndexError:
+                    pass
                 seq_cycles = Var.cycles.filter(Cycles.seq == seq).order_by(Cycles.d.desc())
                 delivered = seq_cycles.first().delivered
                 if Var.tct_from_kpi:
@@ -205,8 +208,11 @@ def counting():
                 else:
                     total_expected_block_cycles = Var.block_available_time // (Var.takt * cycle.parts_per)
                     current_expected_block_cycles = Var.block_time_elapsed // (Var.takt * cycle.parts_per)
-                delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
-                                                           Cycles.d <= Var.sched[get_block_var()]).count()
+                try:
+                    delivered_block_cycles = seq_cycles.filter(Cycles.d >= Var.sched[get_block_var()-1],
+                                                               Cycles.d <= Var.sched[get_block_var()]).count()
+                except IndexError:
+                    delivered_block_cycles = 0
                 try:
                     andons = Var.data[str(seq)]['Andons']
                     responded = Var.data[str(seq)]['Responded']
