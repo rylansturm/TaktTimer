@@ -6,6 +6,7 @@ from appJar.appjar import ItemLookupError
 from sqlalchemy.orm.exc import NoResultFound
 import datetime
 import requests
+from requests.exceptions import ConnectionError
 import configparser
 
 c = configparser.ConfigParser()
@@ -64,9 +65,12 @@ def get_block_data():
     shift = shift_guesser()
     date = kpi_date()
     block = (get_block_var() // 2) + 1
-    r = requests.get('https://andonresponse.com/api/cycles/block_tracker/{}/{}/{}/{}'.format(
-        area, shift, date, block))
-    return r.json()
+    try:
+        r = requests.get('https://andonresponse.com/api/cycles/block_tracker/{}/{}/{}/{}'.format(
+            area, shift, date, block))
+        return r.json()
+    except ConnectionError:
+        return []
 
 
 def shift_guesser():
@@ -74,10 +78,20 @@ def shift_guesser():
         else 'Day' if datetime.datetime.now().hour >= 7 else 'Grave'
 
 
+def menu_press(btn):
+    """ handles all options under the File menu """
+    if btn == 'Fullscreen':
+        app.exitFullscreen() if app.getFullscreen() else app.setFullscreen()
+    elif btn == 'Exit':
+        app.stop()
+
+
 app = gui('tracker', 'fullscreen')
 app.setFont(size=20)
 app.setBg(GUIConfig.appBgColor)
 session = create_session()
+
+app.addMenuList('File', ['Fullscreen', '-', 'Exit'], menu_press)
 
 app.addLabel('time', datetime.datetime.now().strftime('%I:%M:%S %p'), row=0, column=0)
 app.addLabel('overallStability', 'Shift Stability: 0', row=0, column=1)
