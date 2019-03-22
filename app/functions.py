@@ -8,6 +8,7 @@ from appJar.appjar import ItemLookupError
 from sqlalchemy.orm.exc import NoResultFound
 import json
 import requests
+from requests.exceptions import ConnectionError
 if GUIConfig.platform == 'linux':
     from app.lights import *
 
@@ -35,7 +36,7 @@ class Var:
     sched = timedata.TimeData()                 # TODO: remove timedata objects and replace w/db
     started = False                             # fixes abnormal timer countdown at start of shift
     available_time = sum(sched.blockSeconds)    # total available time for shift
-    demand = 312                                # part demand (total including rejects
+    demand = 312                                # part demand (total including rejects)
     shift = 'Day'                               # current shift
     takt = 74.0                                 # takt time (float for accurate calculations, displays as int)
     tct = int(takt)                             # target cycle time ("remaining takt time")
@@ -364,8 +365,11 @@ def data_log_cycle():
             'code': Var.code}
     data_json = json.dumps(data)
     payload = {'json_payload': data_json}
-    r = requests.post('https://andonresponse.com/api/cycles', json=data)
-    print(r.json())
+    try:
+        r = requests.post('https://andonresponse.com/api/cycles', json=data)
+        print(r.json())
+    except ConnectionError:
+        print('Connection Failed')
 
 
 def data_log_kpi():
@@ -377,8 +381,11 @@ def data_log_kpi():
             'demand': Var.demand,
             'plan_cycle_time': Var.tct_from_kpi
             }
-    r = requests.post('https://andonresponse.com/api/kpi', json=data)
-    print(r.json())
+    try:
+        r = requests.post('https://andonresponse.com/api/kpi', json=data)
+        print(r.json())
+    except ConnectionError:
+        print('Connection Failed')
 
 
 def data_log_andon():
@@ -387,8 +394,11 @@ def data_log_andon():
             'sequence': Var.seq,
             'responded': 0,
             }
-    r = requests.post('https://andonresponse.com/api/andon', json=data)
-    print(r.json())
+    try:
+        r = requests.post('https://andonresponse.com/api/andon', json=data)
+        print(r.json())
+    except ConnectionError:
+        print('Connection Failed')
 
 
 def data_log_andon_response():
@@ -396,8 +406,11 @@ def data_log_andon_response():
             'sequence': Var.seq,
             'response_d': str(Var.now),
             }
-    r = requests.post('https://andonresponse.com/api/andon/respond', json=data)
-    print(r.json())
+    try:
+        r = requests.post('https://andonresponse.com/api/andon/respond', json=data)
+        print(r.json())
+    except ConnectionError:
+        print('Connection Failed')
 
 
 def andon():
@@ -418,12 +431,15 @@ def set_area(btn):
 
 
 def get_ARKPIID():
-    r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()))
     try:
-        Var.ARKPIID = r.json()['id']
-    except KeyError:
-        Var.ARKPIID = None
-    return Var.ARKPIID
+        r = requests.get('https://andonresponse.com/api/kpi/{}/{}/{}'.format(Var.area, Var.shift, kpi_date()))
+        try:
+            Var.ARKPIID = r.json()['id']
+        except KeyError:
+            Var.ARKPIID = None
+        return Var.ARKPIID
+    except ConnectionError:
+        print('Connection Failed')
 
 
 def display_cycle_times():
