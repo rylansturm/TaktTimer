@@ -362,9 +362,8 @@ def data_log_cycle():
             'cycle_time': Var.last_cycle,
             'parts_per': Var.partsper,
             'delivered': Var.parts_delivered,
-            'code': Var.code}
-    data_json = json.dumps(data)
-    payload = {'json_payload': data_json}
+            'code': Var.code
+            }
     try:
         r = requests.post('https://andonresponse.com/api/cycles', json=data)
         print(r.json())
